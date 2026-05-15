@@ -3106,8 +3106,15 @@ function setupModal() {
 // INIT
 // =============================================================================
 // =============================================================================
-// SYNC GOOGLE SHEETS via Cloudflare Worker
+// SYNC GOOGLE SHEETS via Apps Script
 // =============================================================================
+
+// URL Apps Script di default: viene usato automaticamente al primo avvio
+// se l'utente non ha ancora configurato un URL nel modal Sync.
+// Per cambiare foglio in futuro: sovrascrivi qui o cambialo nel modal Sync (che ha precedenza).
+const SYNC_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbyUvJGmm3CMztLFQkVcyTES17WqCRIDHBYi7Q4xRXIZH0YncFqcPamdjohTNfJ42FyHgQ/exec';
+const SYNC_ENABLED_DEFAULT = true; // sync automatica abilitata di default
+
 const SYNC_CONFIG_KEY = 'preparazione_dg_sync_config';
 let syncTimer = null;
 let syncState = { lastSyncAt: null, lastError: null, status: 'idle' };
@@ -3115,9 +3122,18 @@ let syncState = { lastSyncAt: null, lastError: null, status: 'idle' };
 async function loadSyncConfig() {
   try {
     const r = await window.storage.get(SYNC_CONFIG_KEY);
-    if (r && r.value) return JSON.parse(r.value);
+    if (r && r.value) {
+      const saved = JSON.parse(r.value);
+      // Se l'utente ha salvato qualcosa, ha precedenza
+      return {
+        workerUrl: saved.workerUrl || SYNC_URL_DEFAULT,
+        secret: saved.secret || '',
+        enabled: typeof saved.enabled === 'boolean' ? saved.enabled : SYNC_ENABLED_DEFAULT
+      };
+    }
   } catch(e) {}
-  return { workerUrl: '', secret: '', enabled: false };
+  // Niente in storage: uso i default hardcoded
+  return { workerUrl: SYNC_URL_DEFAULT, secret: '', enabled: SYNC_ENABLED_DEFAULT };
 }
 
 async function saveSyncConfig(cfg) {
