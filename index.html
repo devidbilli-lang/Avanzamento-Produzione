@@ -158,6 +158,46 @@ body {
   margin-right: 4px;
 }
 
+.toolbar button#syncSettingsBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sync-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #888;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.4);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.sync-dot.idle { background: #888; }
+.sync-dot.syncing {
+  background: #ffc158;
+  box-shadow: 0 0 8px rgba(255, 193, 88, 0.7);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+.sync-dot.success {
+  background: #4ae6a8;
+  box-shadow: 0 0 8px rgba(74, 230, 168, 0.7);
+}
+.sync-dot.error {
+  background: #ff6363;
+  box-shadow: 0 0 8px rgba(255, 99, 99, 0.7);
+}
+.sync-dot.off {
+  background: transparent;
+  border: 1.5px solid #aaa;
+  box-shadow: none;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
 /* Toolbar — bottoni effetto vetro */
 .toolbar button {
   font-family: 'Manrope', sans-serif;
@@ -1439,6 +1479,10 @@ button.link-btn:hover {
   <div class="toolbar-group">
     <button id="goToTodayBtn">↓ Vai a Oggi</button>
     <button id="refreshCatalogBtn" title="Ricarica il catalogo articoli dal foglio Google">↻ Catalogo</button>
+    <button id="syncSettingsBtn" title="Configura sincronizzazione con Google Sheets">
+      <span class="sync-dot" id="syncDot"></span>
+      <span id="syncStatus">Sync</span>
+    </button>
   </div>
   <div class="toolbar-group">
     <input type="text" class="search-input" id="searchInput" placeholder="Cerca Codice, Descrizione, Persona…">
@@ -1582,10 +1626,86 @@ button.link-btn:hover {
   </div>
 </div>
 
+<!-- MODAL: Sync Settings -->
+<div class="modal-backdrop" id="syncSettingsModal">
+  <div class="modal request-modal">
+    <h2>Sincronizzazione Google Sheets</h2>
+    <p class="modal-subtitle">Configura l'URL dell'Apps Script Web App. La sync è automatica ogni 5 minuti quando abilitata, e ad ogni modifica dei blocchi. La chiave di sync è opzionale in questa versione.</p>
+    <div class="request-form">
+      <div class="field">
+        <span class="field-label">URL Apps Script Web App</span>
+        <input type="text" id="syncWorkerUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec">
+      </div>
+      <div class="field">
+        <span class="field-label">Chiave di Sync (opzionale)</span>
+        <input type="password" id="syncSecret" placeholder="Lascia vuoto se non hai impostato la SYNC_SECRET nel codice Apps Script">
+      </div>
+      <div class="field">
+        <span class="field-label">Sincronizzazione automatica</span>
+        <select id="syncEnabled" style="padding: 10px 12px; border: 1px solid var(--rule); background: var(--paper); font-family: inherit; font-weight: 700; font-size: 14px;">
+          <option value="true">Attiva — sync ogni 5 minuti</option>
+          <option value="false">Disattivata</option>
+        </select>
+      </div>
+      <div class="field">
+        <span class="field-label">Stato</span>
+        <div id="syncLastInfo" style="font-size: 12px; color: var(--ink-muted);">—</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button id="syncTestBtn">Test connessione</button>
+      <button id="syncCancelBtn">Annulla</button>
+      <button id="syncSaveBtn" class="primary">Salva</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST container -->
 <div id="toastContainer" class="toast-container"></div>
 
 <script>
+// =============================================================================
+// STORAGE SHIM — quando l'app gira fuori dal sandbox di Claude (es. Pages, file://),
+// window.storage non esiste. Lo sostituiamo con un wrapper compatibile basato su
+// localStorage del browser. L'API resta identica.
+// =============================================================================
+(function () {
+  if (typeof window.storage === 'object' && window.storage && typeof window.storage.set === 'function') {
+    return; // window.storage nativo presente (siamo dentro Claude), nulla da fare
+  }
+  window.storage = {
+    async get(key) {
+      try {
+        const v = window.localStorage.getItem(key);
+        return v != null ? { key, value: v, shared: false } : null;
+      } catch (e) { console.error('storage.get error:', e); return null; }
+    },
+    async set(key, value) {
+      try {
+        window.localStorage.setItem(key, value);
+        return { key, value, shared: false };
+      } catch (e) { console.error('storage.set error:', e); return null; }
+    },
+    async delete(key) {
+      try {
+        window.localStorage.removeItem(key);
+        return { key, deleted: true, shared: false };
+      } catch (e) { console.error('storage.delete error:', e); return null; }
+    },
+    async list(prefix) {
+      try {
+        const keys = [];
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (!prefix || (k && k.startsWith(prefix))) keys.push(k);
+        }
+        return { keys, prefix, shared: false };
+      } catch (e) { console.error('storage.list error:', e); return { keys: [], prefix, shared: false }; }
+    }
+  };
+  console.info('[storage] using localStorage shim');
+})();
+
 // =============================================================================
 // COSTANTI
 // =============================================================================
@@ -2743,9 +2863,15 @@ function handleEdit(blockId, rowIdx, field, newValue) {
   }
 }
 
+let _syncDebounceTimer = null;
 async function persistAndRender() {
   await saveBlocks(state.blocks);
   render();
+  // Sync ritardata di 3 secondi: se l'utente fa più modifiche in rapida successione, ne facciamo una sola
+  if (_syncDebounceTimer) clearTimeout(_syncDebounceTimer);
+  _syncDebounceTimer = setTimeout(() => {
+    if (typeof syncNow === 'function') syncNow(true);
+  }, 3000);
 }
 
 // =============================================================================
@@ -2979,6 +3105,158 @@ function setupModal() {
 // =============================================================================
 // INIT
 // =============================================================================
+// =============================================================================
+// SYNC GOOGLE SHEETS via Cloudflare Worker
+// =============================================================================
+const SYNC_CONFIG_KEY = 'preparazione_dg_sync_config';
+let syncTimer = null;
+let syncState = { lastSyncAt: null, lastError: null, status: 'idle' };
+
+async function loadSyncConfig() {
+  try {
+    const r = await window.storage.get(SYNC_CONFIG_KEY);
+    if (r && r.value) return JSON.parse(r.value);
+  } catch(e) {}
+  return { workerUrl: '', secret: '', enabled: false };
+}
+
+async function saveSyncConfig(cfg) {
+  try { await window.storage.set(SYNC_CONFIG_KEY, JSON.stringify(cfg)); } catch(e) { console.error(e); }
+}
+
+function setSyncDot(status, label) {
+  const dot = document.getElementById('syncDot');
+  const text = document.getElementById('syncStatus');
+  if (dot) dot.className = 'sync-dot ' + status;
+  if (text && label) text.textContent = label;
+}
+
+async function syncNow(silent = false) {
+  const cfg = await loadSyncConfig();
+  if (!cfg.enabled || !cfg.workerUrl) {
+    setSyncDot('off', 'Sync off');
+    return { skipped: true };
+  }
+
+  setSyncDot('syncing', 'Sync…');
+  syncState.status = 'syncing';
+
+  try {
+    // Apps Script accetta solo richieste "simple" (no preflight CORS):
+    // - method POST
+    // - Content-Type text/plain (anche se il body è JSON)
+    // - Niente header custom: la secret viaggia DENTRO il body (se configurata)
+    const body = { blocks: state.blocks };
+    if (cfg.secret) body.secret = cfg.secret;
+    const res = await fetch(cfg.workerUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`HTTP ${res.status}: ${errText}`);
+    }
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Apps Script ha risposto con errore');
+
+    syncState.lastSyncAt = new Date();
+    syncState.lastError = null;
+    syncState.status = 'success';
+    setSyncDot('success', 'Sync ✓');
+    if (!silent) showToast(`Sincronizzato: ${data.rows_written || 0} righe sul foglio`, 'success');
+    return data;
+  } catch (err) {
+    console.error('Sync error:', err);
+    syncState.lastError = err.message || String(err);
+    syncState.status = 'error';
+    setSyncDot('error', 'Sync errore');
+    if (!silent) showToast('Errore sync: ' + syncState.lastError, 'error', 5000);
+    return { error: syncState.lastError };
+  }
+}
+
+function startSyncTimer() {
+  stopSyncTimer();
+  syncTimer = setInterval(() => syncNow(true), 5 * 60 * 1000);
+}
+
+function stopSyncTimer() {
+  if (syncTimer) { clearInterval(syncTimer); syncTimer = null; }
+}
+
+async function initSync() {
+  const cfg = await loadSyncConfig();
+  if (cfg.enabled && cfg.workerUrl) {
+    setSyncDot('idle', 'Sync pronto');
+    startSyncTimer();
+    // Primo sync dopo 5 secondi dall'avvio
+    setTimeout(() => syncNow(true), 5000);
+  } else {
+    setSyncDot('off', 'Sync off');
+  }
+}
+
+function setupSyncSettingsModal() {
+  const modal = document.getElementById('syncSettingsModal');
+  document.getElementById('syncSettingsBtn').addEventListener('click', async () => {
+    const cfg = await loadSyncConfig();
+    document.getElementById('syncWorkerUrl').value = cfg.workerUrl || '';
+    document.getElementById('syncSecret').value = cfg.secret || '';
+    document.getElementById('syncEnabled').value = String(cfg.enabled !== false);
+    const info = document.getElementById('syncLastInfo');
+    if (syncState.lastSyncAt) {
+      info.textContent = `Ultimo sync: ${syncState.lastSyncAt.toLocaleString('it-IT')}` +
+        (syncState.lastError ? ` · ERRORE: ${syncState.lastError}` : ' · OK');
+    } else {
+      info.textContent = syncState.lastError ? `ERRORE: ${syncState.lastError}` : 'Mai sincronizzato';
+    }
+    modal.classList.add('show');
+  });
+
+  modal.addEventListener('click', (e) => {
+    if (e.target.id === 'syncSettingsModal') modal.classList.remove('show');
+  });
+
+  document.getElementById('syncCancelBtn').addEventListener('click', () => modal.classList.remove('show'));
+
+  document.getElementById('syncSaveBtn').addEventListener('click', async () => {
+    const cfg = {
+      workerUrl: document.getElementById('syncWorkerUrl').value.trim(),
+      secret: document.getElementById('syncSecret').value,
+      enabled: document.getElementById('syncEnabled').value === 'true'
+    };
+    await saveSyncConfig(cfg);
+    modal.classList.remove('show');
+    showToast('Configurazione sync salvata', 'success');
+    stopSyncTimer();
+    if (cfg.enabled && cfg.workerUrl) {
+      setSyncDot('idle', 'Sync pronto');
+      startSyncTimer();
+      setTimeout(() => syncNow(false), 500);
+    } else {
+      setSyncDot('off', 'Sync off');
+    }
+  });
+
+  document.getElementById('syncTestBtn').addEventListener('click', async () => {
+    const url = document.getElementById('syncWorkerUrl').value.trim();
+    if (!url) { showToast('Inserisci prima un URL Apps Script', 'error'); return; }
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.ok) {
+        showToast(`Apps Script raggiungibile: ${data.time}`, 'success');
+      } else {
+        showToast('Apps Script raggiunto ma risposta inattesa', 'error');
+      }
+    } catch (e) {
+      showToast('Apps Script non raggiungibile: ' + e.message, 'error', 5000);
+    }
+  });
+}
+
 async function init() {
   try {
     state.blocks = await loadBlocks();
@@ -3000,6 +3278,8 @@ async function init() {
     setupArticlePicker();
     setupCatalogModal();
     setupRequestModal();
+    setupSyncSettingsModal();
+    await initSync();
   } catch (e) {
     console.error('Errore in init():', e);
     const container = document.getElementById('blocksContainer');
