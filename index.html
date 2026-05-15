@@ -1,0 +1,3020 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preparazione DG — Avanzamento Produzione</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #faf7f0;
+  --paper-2: #f3ede1;
+  --ink: #1a1612;
+  --ink-soft: #4a423a;
+  --ink-muted: #8a8278;
+  --rule: #d6cebd;
+  --rule-strong: #2a2520;
+  --gold: #a78546;
+  --gold-soft: #d4b87a;
+  --today-bg: #fdf2f0;
+  --today-rule: #a83829;
+  --unconfirmed: #ffc158;
+  --exit-bg: #f0f5ed;
+  --exit-rule: #4a7a3f;
+  --highlight: #fff3a8;
+  --shadow: 0 2px 12px rgba(26, 22, 18, 0.06);
+  --shadow-hover: 0 6px 24px rgba(26, 22, 18, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'Manrope', system-ui, sans-serif !important;
+  font-weight: 700 !important;
+}
+
+html, body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Manrope', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse at top left, rgba(167, 133, 70, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(167, 133, 70, 0.03) 0%, transparent 50%);
+}
+
+/* === HEADER === */
+.app-header {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 24px 40px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 40px;
+  border-bottom: 3px solid var(--gold);
+}
+
+.app-title-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+}
+
+.app-logo {
+  height: 90px;
+  width: auto;
+  display: block;
+  border-radius: 14px;
+}
+
+.app-title {
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 40px;
+  text-align: center;
+  letter-spacing: 0.02em;
+  color: var(--paper);
+}
+
+.header-meta {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  font-family: 'Montserrat', sans-serif !important;
+  font-size: 18px;
+}
+
+.header-meta .box {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06));
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: var(--paper);
+  padding: 14px 28px;
+  border-radius: 18px;
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 700 !important;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    0 4px 14px rgba(0, 0, 0, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+  min-width: 160px;
+}
+
+.header-meta .label {
+  font-family: 'Montserrat', sans-serif !important;
+  font-size: 13px;
+  letter-spacing: 0.15em;
+  color: var(--gold-soft);
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700 !important;
+}
+
+.header-meta .box span:not(.label) {
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 20px;
+}
+
+/* === TOOLBAR === */
+.toolbar {
+  background: var(--paper-2);
+  padding: 16px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  border-bottom: 1px solid var(--rule);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: var(--shadow);
+}
+
+.toolbar-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.toolbar .label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--ink-muted);
+  margin-right: 4px;
+}
+
+/* Toolbar — bottoni effetto vetro */
+.toolbar button {
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 10px 18px;
+  border: 1px solid rgba(26, 22, 18, 0.3);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.25));
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    0 3px 10px rgba(26, 22, 18, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    inset 0 -1px 0 rgba(26, 22, 18, 0.08);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+  text-transform: none;
+}
+
+.toolbar button:hover {
+  background: linear-gradient(135deg, rgba(26, 22, 18, 0.92), rgba(26, 22, 18, 0.78));
+  color: var(--paper);
+  border-color: var(--ink);
+  transform: translateY(-1px);
+  box-shadow:
+    0 5px 14px rgba(26, 22, 18, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.toolbar button:active {
+  transform: translateY(0);
+}
+
+.toolbar button.primary {
+  background: linear-gradient(135deg, rgba(26, 22, 18, 0.92), rgba(26, 22, 18, 0.78));
+  color: var(--paper);
+  border-color: var(--ink);
+  box-shadow:
+    0 4px 14px rgba(26, 22, 18, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.toolbar button.primary:hover {
+  background: linear-gradient(135deg, rgba(212, 184, 122, 0.95), rgba(167, 133, 70, 0.85));
+  color: var(--ink);
+  border-color: var(--gold);
+  box-shadow:
+    0 6px 18px rgba(167, 133, 70, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.toolbar button.filter-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.45), rgba(255, 255, 255, 0.12));
+  color: var(--ink-soft);
+  border-color: rgba(26, 22, 18, 0.2);
+}
+
+.toolbar button.filter-btn.active {
+  background: linear-gradient(135deg, rgba(26, 22, 18, 0.92), rgba(26, 22, 18, 0.78));
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+/* Generic button reset — usato dai modali e altri contesti, NON toolbar (già personalizzati sopra) */
+button {
+  font-family: 'Manrope', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 9px 16px;
+  border: 1px solid var(--rule-strong);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s ease;
+}
+
+button:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+button.primary {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+button.primary:hover {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+}
+
+button.filter-btn {
+  border: 1px solid var(--rule);
+  background: transparent;
+  color: var(--ink-soft);
+}
+
+button.filter-btn.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+button.ghost {
+  background: linear-gradient(135deg, rgba(212, 184, 122, 0.45), rgba(167, 133, 70, 0.28));
+  border: 1px solid rgba(167, 133, 70, 0.55);
+  color: var(--ink);
+  padding: 9px 18px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    0 4px 14px rgba(167, 133, 70, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(167, 133, 70, 0.25);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease;
+}
+
+button.ghost:hover {
+  background: linear-gradient(135deg, rgba(212, 184, 122, 0.7), rgba(167, 133, 70, 0.5));
+  border-color: var(--gold);
+  color: var(--ink);
+  box-shadow:
+    0 6px 18px rgba(167, 133, 70, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(167, 133, 70, 0.3);
+  transform: translateY(-1px);
+}
+
+button.ghost:active {
+  transform: translateY(0);
+}
+
+/* "+ Aggiungi Richiesta" — versione viola del ghost button */
+button.ghost[data-action="add-request"] {
+  background: linear-gradient(135deg, rgba(195, 114, 255, 0.42), rgba(160, 79, 217, 0.28));
+  border-color: rgba(195, 114, 255, 0.55);
+}
+
+button.ghost[data-action="add-request"]:hover {
+  background: linear-gradient(135deg, rgba(195, 114, 255, 0.7), rgba(160, 79, 217, 0.5));
+  border-color: #c372ff;
+  box-shadow:
+    0 6px 18px rgba(195, 114, 255, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(160, 79, 217, 0.3);
+}
+
+button.icon-btn {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.22));
+  border: 1px solid rgba(26, 22, 18, 0.35);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 8px 16px;
+  border-radius: 14px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    0 3px 10px rgba(26, 22, 18, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(26, 22, 18, 0.08);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+button.icon-btn:hover {
+  background: linear-gradient(135deg, rgba(26, 22, 18, 0.92), rgba(26, 22, 18, 0.78));
+  color: var(--paper);
+  border-color: var(--ink);
+  transform: translateY(-1px);
+  box-shadow:
+    0 5px 14px rgba(26, 22, 18, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+button.icon-btn:active {
+  transform: translateY(0);
+}
+
+button.icon-btn.danger {
+  background: linear-gradient(135deg, rgba(255, 99, 99, 0.32), rgba(255, 99, 99, 0.14));
+  border-color: rgba(255, 99, 99, 0.65);
+  color: var(--ink);
+}
+
+button.icon-btn.danger:hover {
+  background: linear-gradient(135deg, #ff6363, #e84d4d);
+  color: var(--paper);
+  border-color: #ff6363;
+  box-shadow:
+    0 6px 18px rgba(255, 99, 99, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* "+ Nuovo Blocco" — glass ciano nella block-bar */
+button.icon-btn.new-block-btn {
+  background: linear-gradient(135deg, rgba(61, 232, 232, 0.55), rgba(61, 232, 232, 0.28));
+  border-color: rgba(61, 232, 232, 0.7);
+  color: var(--ink);
+}
+
+button.icon-btn.new-block-btn:hover {
+  background: linear-gradient(135deg, #3de8e8, #2bc8c8);
+  color: var(--ink);
+  border-color: #3de8e8;
+  box-shadow:
+    0 6px 18px rgba(61, 232, 232, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+button.icon-btn.row-action {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-muted);
+  font-size: 14px;
+  padding: 2px 6px;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+button.icon-btn.row-action:hover {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--rule);
+}
+
+button.icon-btn.row-action.danger {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-muted);
+}
+
+button.icon-btn.row-action.danger:hover {
+  background: var(--today-rule);
+  color: var(--paper);
+  border-color: var(--today-rule);
+}
+
+.block.unconfirmed .block-bar button.icon-btn.confirm-btn {
+  background: linear-gradient(135deg, rgba(26, 22, 18, 0.92), rgba(26, 22, 18, 0.78));
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.block.unconfirmed .block-bar button.icon-btn.confirm-btn:hover {
+  background: linear-gradient(135deg, rgba(212, 184, 122, 0.95), rgba(167, 133, 70, 0.85));
+  color: var(--ink);
+  border-color: var(--gold);
+  box-shadow:
+    0 6px 18px rgba(167, 133, 70, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.search-input {
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 10px 18px;
+  border: 1px solid rgba(26, 22, 18, 0.3);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.25));
+  width: 260px;
+  color: var(--ink);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(26, 22, 18, 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow:
+    0 0 0 3px rgba(167, 133, 70, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.search-input::placeholder {
+  color: var(--ink-muted);
+  font-weight: 700;
+}
+
+/* === BLOCKS CONTAINER === */
+.blocks-container {
+  padding: 32px 40px 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--ink-muted);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: normal;
+  font-size: 22px;
+}
+
+/* === BLOCK === */
+.block {
+  background: var(--paper);
+  display: grid;
+  grid-template-columns: 110px 1fr 110px;
+  border: 2px solid var(--ink);
+  box-shadow: 0 4px 18px rgba(26, 22, 18, 0.18);
+  transition: box-shadow 0.2s, transform 0.2s;
+  overflow: hidden;
+}
+
+.block:hover {
+  box-shadow: 0 8px 28px rgba(26, 22, 18, 0.28);
+}
+
+.block.unconfirmed {
+  border: 2px solid var(--unconfirmed);
+  box-shadow: 0 6px 22px rgba(255, 193, 88, 0.28);
+}
+
+.block-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 8px;
+  text-align: center;
+  position: relative;
+}
+
+.block-side.entry {
+  background: #e6fbf0;
+  border: 2px solid #4ae6a8;
+  box-shadow:
+    inset 0 0 6px rgba(74, 230, 168, 0.95),
+    inset 0 0 18px rgba(74, 230, 168, 0.55),
+    inset 0 0 32px rgba(74, 230, 168, 0.25);
+}
+
+.block-side.exit {
+  background: #ffeaea;
+  border: 2px solid #ff6363;
+  box-shadow:
+    inset 0 0 6px rgba(255, 99, 99, 0.95),
+    inset 0 0 18px rgba(255, 99, 99, 0.55),
+    inset 0 0 32px rgba(255, 99, 99, 0.25);
+}
+
+.block-side.exit .time-label,
+.block-side.exit .time,
+.block-side.exit .date-vertical {
+  color: var(--ink);
+  text-shadow: 0 0 4px rgba(255, 99, 99, 0.4);
+}
+
+.block-side.entry .time-label,
+.block-side.entry .time,
+.block-side.entry .date-vertical {
+  text-shadow: 0 0 4px rgba(74, 230, 168, 0.45);
+}
+
+.block-side .time-label {
+  font-family: 'Montserrat', sans-serif !important;
+  font-weight: 700 !important;
+  font-size: 16px;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+
+.block-side .time {
+  font-family: 'Montserrat', sans-serif !important;
+  font-size: 22px;
+  font-weight: 700 !important;
+  color: var(--ink);
+  margin-bottom: 18px;
+}
+
+.block-side .date-vertical {
+  font-family: 'Montserrat', sans-serif !important;
+  font-style: normal;
+  font-size: 16px;
+  font-weight: 700 !important;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  letter-spacing: 0.03em;
+  color: var(--ink);
+}
+
+/* === BLOCK MAIN === */
+.block-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.block-bar {
+  background: var(--paper-2);
+  padding: 10px 16px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  border-bottom: 1px solid var(--rule);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+.block-bar .block-id {
+  color: var(--ink-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.block.unconfirmed .block-bar {
+  background: var(--unconfirmed);
+  color: var(--ink);
+}
+
+.block.unconfirmed .block-bar .block-id {
+  color: var(--paper);
+}
+
+.block-bar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* === TABLE === */
+.block-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.block-table thead {
+  background: #ede1c4;
+}
+
+.block-table th {
+  padding: 11px 8px;
+  text-align: center;
+  font-family: 'Manrope', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.13em;color: var(--ink);
+  border-top: 1px solid var(--gold);
+  border-bottom: 2px solid var(--gold);
+  border-right: 1px solid rgba(167, 133, 70, 0.3);
+}
+
+.block-table th:last-child { border-right: none; }
+
+.block-table th.col-quantita,
+.block-table th.col-unita {
+  color: var(--gold);
+}
+
+.block-table td {
+  padding: 8px;
+  border-right: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+  vertical-align: middle;
+  font-size: 13px;
+}
+
+.block-table td:last-child { border-right: none; }
+
+.block-table tr:hover td {
+  background: rgba(167, 133, 70, 0.04);
+}
+
+.block-table td.editable {
+  cursor: text;
+}
+
+.block-table td.editable:focus,
+.block-table td.editable:focus-within {
+  outline: 2px solid var(--gold);
+  outline-offset: -2px;
+  background: #fffbf0;
+}
+
+/* Celle bloccate: codice / descrizione / minuti sono derivati dal catalogo, non si scrivono a mano */
+.block-table td.locked {
+  cursor: default;
+  user-select: text;
+  color: var(--ink);
+}
+
+/* La cella codice è cliccabile per riaprire il picker */
+.block-table td.pickable {
+  cursor: pointer;
+  position: relative;
+  transition: background 120ms ease;
+}
+.block-table td.pickable:hover {
+  background: rgba(167, 133, 70, 0.10);
+  outline: 1px dashed var(--gold);
+  outline-offset: -2px;
+}
+.block-table td.pickable .placeholder {
+  color: var(--ink-muted);
+  font-style: normal;
+  letter-spacing: 0;
+  font-size: 11px;
+}
+
+/* Cell types */
+.cell-week { text-align: center; font-family: 'JetBrains Mono', monospace; color: var(--ink-muted); }
+.cell-unita {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color: var(--gold);
+  background: rgba(167, 133, 70, 0.04);
+}
+.cell-codice {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-style: normal;
+  letter-spacing: 0.05em;
+}
+.cell-descrizione { font-style: normal; text-align: center; }
+.cell-minuti { text-align: center; font-family: 'JetBrains Mono', monospace; }
+.cell-bollettino { text-align: center; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.cell-bollettino.highlight {
+  background: var(--highlight);
+  font-weight: 700;
+  color: var(--ink);
+}
+.cell-quantita {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color: var(--gold);
+}
+.cell-note { text-align: center; font-family: 'Manrope', sans-serif; font-weight: 500; }
+.cell-actions { text-align: center; }
+
+/* Column widths */
+.col-week     { width: 7%; }
+.col-unita    { width: 8%; }
+.col-codice   { width: 10%; }
+.col-descrizione { width: 22%; }
+.col-minuti   { width: 7%; }
+.col-bollettino  { width: 22%; }
+.col-quantita { width: 7%; }
+.col-note     { width: 12%; }
+.col-actions  { width: 5%; }
+
+/* === BLOCK FOOTER === */
+.block-footer {
+  padding: 12px 16px;
+  background: var(--paper-2);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1.5px solid var(--rule-strong);
+  gap: 16px;
+}
+
+.block-footer-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* === SEZIONE RICHIESTE === */
+.requests-section {
+  padding: 12px 16px;
+  background: rgba(195, 114, 255, 0.07);
+  border-top: 1px solid rgba(195, 114, 255, 0.2);
+}
+
+.requests-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.requests-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  color: #c372ff;
+}
+
+.requests-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #a04fd9;
+  letter-spacing: 0.05em;
+}
+
+.requests-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.request-item {
+  display: grid;
+  grid-template-columns: 160px 1fr 100px 32px;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--paper);
+  border: 1px solid rgba(195, 114, 255, 0.25);
+  border-left: 3px solid #c372ff;
+}
+
+.request-item .request-codice {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 12px;
+  color: #c372ff;
+  letter-spacing: 0.04em;
+}
+
+.request-item .request-desc {
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  color: #c372ff;
+  font-style: normal;
+}
+
+.request-item .request-minuti {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  color: #c372ff;
+  text-align: right;
+}
+
+.request-item button.icon-btn.row-action.danger {
+  color: #c372ff;
+}
+
+.request-item button.icon-btn.row-action.danger:hover {
+  background: #c372ff;
+  color: var(--paper);
+  border-color: #c372ff;
+}
+
+.requests-empty {
+  padding: 8px 12px;
+  font-style: normal;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
+/* === MODAL NUOVA RICHIESTA === */
+.modal.request-modal {
+  max-width: 480px;
+}
+
+.request-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 16px 0 20px;
+}
+
+.request-form .field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.request-form .field-label {
+  font-size: 11px;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.request-form input {
+  padding: 10px 12px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.request-form input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+/* Campo articolo cliccabile dentro il modal richiesta */
+.request-article-picker {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: baseline;
+  padding: 12px 14px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  cursor: pointer;
+  transition: all 120ms ease;
+  min-height: 22px;
+}
+
+.request-article-picker:hover,
+.request-article-picker:focus {
+  outline: none;
+  border-color: var(--gold);
+  background: rgba(167, 133, 70, 0.06);
+}
+
+.request-article-picker .rap-placeholder {
+  grid-column: 1 / -2;
+  color: var(--ink-muted);
+  font-style: normal;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.request-article-picker .rap-codice {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+}
+
+.request-article-picker .rap-desc {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  font-style: normal;
+}
+
+.request-article-picker .rap-arrow {
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* Quando un articolo è selezionato, nascondo il placeholder e mostro i dati */
+.request-article-picker.has-article .rap-placeholder { display: none; }
+.request-article-picker:not(.has-article) .rap-codice,
+.request-article-picker:not(.has-article) .rap-desc { display: none; }
+
+.block-footer-stats {
+  display: flex;
+  gap: 32px;
+  align-items: center;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.block-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+}
+
+.block-stat .stat-label {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.block-stat .stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.block-stat.highlight .stat-value {
+  color: var(--today-rule);
+  font-size: 22px;
+}
+
+.block-stat.gold .stat-value {
+  color: var(--gold);
+}
+
+.block-stat.cyan {
+  background: linear-gradient(135deg, rgba(61, 232, 232, 0.55), rgba(61, 232, 232, 0.28));
+  border: 1px solid rgba(61, 232, 232, 0.65);
+  border-radius: 18px;
+  padding: 8px 22px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    0 4px 16px rgba(61, 232, 232, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(61, 232, 232, 0.3);
+}
+
+.block-stat.cyan .stat-label,
+.block-stat.cyan .stat-value {
+  color: var(--ink);
+  text-shadow: none;
+}
+
+/* Picker articolo deve stare sopra al modal richiesta quando si apre da lì */
+#articlePickerModal {
+  z-index: 1500;
+}
+
+/* === MODAL === */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(26, 22, 18, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-backdrop.show {
+  display: flex;
+}
+
+.modal {
+  background: var(--paper);
+  padding: 32px;
+  border: 1px solid var(--gold);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  max-width: 500px;
+  width: 90%;
+}
+
+.modal h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 600;
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.modal .modal-subtitle {
+  color: var(--ink-muted);
+  margin-bottom: 24px;
+  font-size: 13px;
+}
+
+.modal label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+  margin-top: 16px;
+}
+
+.modal input {
+  width: 100%;
+  padding: 10px 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 2px;
+}
+
+.modal input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.modal-actions button.primary.danger {
+  background: var(--today-rule);
+  border-color: var(--today-rule);
+  color: var(--paper);
+}
+
+.modal-actions button.primary.danger:hover {
+  background: #8a2e22;
+  border-color: #8a2e22;
+  color: var(--paper);
+}
+
+/* === CATALOG MODAL === */
+.modal.catalog-modal {
+  max-width: 600px;
+  width: 90vw;
+}
+
+.catalog-instructions {
+  background: var(--paper-2);
+  border-left: 3px solid var(--gold);
+  padding: 14px 16px;
+  margin: 12px 0 16px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.catalog-instructions p { margin-bottom: 6px; }
+.catalog-instructions ol { padding-left: 20px; }
+.catalog-instructions li { margin: 4px 0; }
+.catalog-instructions a {
+  color: var(--gold);
+  text-decoration: underline;
+}
+.catalog-instructions a:hover { color: var(--ink); }
+
+.file-drop {
+  display: block;
+  border: 2px dashed var(--rule);
+  border-radius: 4px;
+  padding: 32px 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--paper);
+}
+
+.file-drop:hover, .file-drop.dragover {
+  border-color: var(--gold);
+  background: #fffbf0;
+}
+
+.file-drop.dragover {
+  border-style: solid;
+  transform: scale(1.01);
+}
+
+.file-drop-icon {
+  font-size: 28px;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+.file-drop-text {
+  font-size: 14px;
+  color: var(--ink);
+}
+
+.file-drop-text span {
+  font-size: 11px;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.catalog-fallback {
+  margin-top: 16px;
+  border-top: 1px solid var(--rule);
+  padding-top: 12px;
+}
+
+.catalog-fallback summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 4px 0;
+}
+
+.catalog-fallback summary:hover { color: var(--ink); }
+
+.fallback-content {
+  padding-top: 10px;
+}
+
+.fallback-hint {
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin-bottom: 6px;
+}
+
+#csvPasteArea {
+  width: 100%;
+  padding: 10px;
+  font-size: 11px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 2px;
+  resize: vertical;
+  margin-bottom: 8px;
+}
+
+/* === ARTICLE PICKER === */
+.modal.article-picker {
+  max-width: 760px;
+  width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.article-picker .modal-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+button.link-btn {
+  background: none;
+  border: none;
+  color: var(--gold);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  padding: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+button.link-btn:hover {
+  background: none;
+  color: var(--ink);
+}
+
+#articleSearch {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+  border-radius: 2px;
+  margin-top: 8px;
+}
+
+#articleSearch:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+
+.picker-list {
+  margin-top: 12px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 200px;
+  max-height: 50vh;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+}
+
+/* Sezione inserimento manuale (per articoli non in catalogo) */
+.manual-entry {
+  margin-top: 12px;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--gold);
+  background: rgba(167, 133, 70, 0.06);
+}
+.manual-entry-title {
+  font-size: 13px;
+  margin: 0 0 10px;
+  color: var(--ink);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.manual-entry-grid {
+  display: grid;
+  grid-template-columns: 160px 1fr 100px;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.manual-entry-grid label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.manual-entry-grid input {
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 13px;
+}
+.manual-entry-grid input:focus {
+  outline: none;
+  border-color: var(--gold);
+}
+.manual-entry-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.picker-item {
+  display: grid;
+  grid-template-columns: 160px 1fr 100px;
+  gap: 16px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+  align-items: baseline;
+  transition: background 0.1s;
+}
+
+.picker-item:hover {
+  background: var(--paper-2);
+}
+
+.picker-item.focused {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.picker-item.focused .pi-desc { color: var(--gold-soft); }
+.picker-item.focused .pi-minuti { color: var(--gold); }
+
+.picker-item .pi-codice {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.picker-item .pi-desc {
+  font-style: normal;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+
+.picker-item .pi-minuti {
+  text-align: right;
+  font-size: 13px;
+  color: var(--gold);
+}
+
+.picker-empty, .picker-loading {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--ink-muted);
+  font-style: normal;
+}
+
+.picker-truncated {
+  padding: 10px 14px;
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 12px;
+  background: var(--paper-2);
+  border-top: 1px dashed var(--rule);
+}
+
+/* === TOAST === */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 12px 20px;
+  border-left: 3px solid var(--gold);
+  font-family: 'Manrope', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  max-width: 360px;
+  animation: toastIn 0.25s ease-out;
+  pointer-events: auto;
+}
+
+.toast.success { border-left-color: var(--exit-rule); }
+.toast.error { border-left-color: var(--today-rule); }
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes toastOut {
+  to { opacity: 0; transform: translateX(20px); }
+}
+
+.info-line {
+  background: var(--paper-2);
+  padding: 12px;
+  margin-top: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--ink-soft);
+  border-left: 3px solid var(--gold);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 1100px) {
+  .app-header { grid-template-columns: 1fr; text-align: center; gap: 12px; padding: 16px 20px; }
+  .app-title { font-size: 24px; }
+  .toolbar { padding: 12px 20px; flex-wrap: wrap; }
+  .blocks-container { padding: 20px 16px; }
+  .block { grid-template-columns: 60px 1fr 60px; }
+  .block-side .date-vertical { font-size: 11px; }
+  .block-table { font-size: 11px; }
+  .block-table td, .block-table th { padding: 6px 4px; }
+}
+
+/* === LOADING === */
+.loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--ink-muted);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: normal;
+  font-size: 18px;
+}
+
+/* === ANIMATIONS === */
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.block { animation: slideIn 0.3s ease-out; }
+
+/* === PRINT === */
+@media print {
+  .toolbar, .block-bar-actions, .block-footer button, .icon-btn { display: none !important; }
+  .block { box-shadow: none; border: 1px solid #000; page-break-inside: avoid; }
+  body { background: white; }
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="app-title-wrap">
+    <img class="app-logo" src="data:image/jpeg;base64,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" alt="DiMar Group">
+    <h1 class="app-title">Preparazione DG</h1>
+  </div>
+  <div class="header-meta">
+    <div class="box">
+      <span class="label">Oggi</span>
+      <span id="todayDate">—</span>
+    </div>
+    <div class="box">
+      <span class="label">Settimana</span>
+      <span id="todayWeek">—</span>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="toolbar-group">
+    <button id="goToTodayBtn">↓ Vai a Oggi</button>
+    <button id="refreshCatalogBtn" title="Ricarica il catalogo articoli dal foglio Google">↻ Catalogo</button>
+  </div>
+  <div class="toolbar-group">
+    <input type="text" class="search-input" id="searchInput" placeholder="Cerca Codice, Descrizione, Persona…">
+  </div>
+  <div class="toolbar-group">
+    <span class="label">Filtro</span>
+    <button class="filter-btn active" data-filter="month">Ultimo Mese</button>
+    <button class="filter-btn" data-filter="all">Tutto Lo Storico</button>
+  </div>
+</div>
+
+<main class="blocks-container" id="blocksContainer">
+  <div class="loading">Caricamento blocchi…</div>
+</main>
+
+<!-- MODAL: New Block -->
+<div class="modal-backdrop" id="newBlockModal">
+  <div class="modal">
+    <h2>Nuovo Blocco di Produzione</h2>
+    <p class="modal-subtitle">Inserisci la data di entrata. L'uscita verrà calcolata automaticamente dopo 2 giorni lavorativi (escluse domeniche, sabati e festività italiane).</p>
+    <label for="entryDateInput">Data Entrata (06:00)</label>
+    <input type="date" id="entryDateInput">
+    <div class="info-line" id="exitPreview">L'uscita sarà calcolata automaticamente…</div>
+    <div class="modal-actions">
+      <button id="cancelBlockBtn">Annulla</button>
+      <button class="primary" id="confirmBlockBtn">Crea Blocco</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Confirm generico -->
+<div class="modal-backdrop" id="confirmModal">
+  <div class="modal">
+    <h2 id="confirmTitle">Conferma</h2>
+    <p class="modal-subtitle" id="confirmMessage"></p>
+    <div class="modal-actions">
+      <button id="confirmCancelBtn">Annulla</button>
+      <button class="primary" id="confirmOkBtn">Conferma</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Catalog Manager -->
+<div class="modal-backdrop" id="catalogModal">
+  <div class="modal catalog-modal">
+    <h2>Catalogo Articoli</h2>
+    <p class="modal-subtitle" id="catalogModalStatus">Nessun articolo caricato</p>
+
+    <div class="catalog-instructions">
+      <p><strong>Per importare il catalogo dal foglio Google:</strong></p>
+      <ol>
+        <li>Apri il foglio: <a href="https://docs.google.com/spreadsheets/d/1vpThD_H9nyYKvQf0tylE-sJ5lOkYyVpA7VSoqpFrIfs/edit?gid=623594434" target="_blank" rel="noopener">Registro Tempi Ciclo DG →</a></li>
+        <li>Menu <strong>File → Scarica → Valori separati da virgola (.csv)</strong></li>
+        <li>Trascina il file scaricato nel riquadro qui sotto</li>
+      </ol>
+    </div>
+
+    <label class="file-drop" id="fileDropZone">
+      <input type="file" accept=".csv,text/csv,text/plain" id="csvFileInput" hidden>
+      <div class="file-drop-msg">
+        <div class="file-drop-icon">↓</div>
+        <div class="file-drop-text">Trascina qui il file CSV<br><span>oppure clicca per selezionarlo</span></div>
+      </div>
+    </label>
+
+    <details class="catalog-fallback">
+      <summary>Alternative</summary>
+      <div class="fallback-content">
+        <p class="fallback-hint">Se preferisci, incolla qui il contenuto CSV:</p>
+        <textarea id="csvPasteArea" placeholder="Incolla qui il CSV..." rows="4"></textarea>
+        <button id="importPasteBtn">Importa CSV incollato</button>
+      </div>
+    </details>
+
+    <div class="modal-actions">
+      <button id="closeCatalogBtn">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Article Picker -->
+<div class="modal-backdrop" id="articlePickerModal">
+  <div class="modal article-picker">
+    <h2 id="pickerTitle">Seleziona Articolo</h2>
+    <p class="modal-subtitle">
+      <span id="pickerCatalogStatus">Carico catalogo…</span>
+      &nbsp;·&nbsp;
+      <button class="link-btn" id="toggleManualEntryBtn">Articolo non in catalogo? Inserisci manualmente</button>
+    </p>
+    <input type="text" id="articleSearch" placeholder="Cerca per codice o descrizione…">
+    <div class="picker-list" id="pickerList"></div>
+
+    <div id="manualEntrySection" class="manual-entry" style="display:none;">
+      <h3 class="manual-entry-title">Inserimento manuale</h3>
+      <div class="manual-entry-grid">
+        <label>Codice
+          <input type="text" id="manualCodice" placeholder="Es. M28023">
+        </label>
+        <label>Descrizione
+          <input type="text" id="manualDescrizione" placeholder="Es. Rush Bumbag Wash. MNG BL">
+        </label>
+        <label>Minuti
+          <input type="text" id="manualMinuti" inputmode="decimal" placeholder="Es. 17,93">
+        </label>
+      </div>
+      <div class="manual-entry-actions">
+        <button id="manualEntrySubmitBtn" class="primary">Inserisci articolo</button>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button id="closeArticlePickerBtn">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Nuova Richiesta -->
+<div class="modal-backdrop" id="requestModal">
+  <div class="modal request-modal">
+    <h2>Nuova Richiesta</h2>
+    <p class="modal-subtitle">Scegli un articolo dal catalogo e i minuti necessari. Si sommano al totale del blocco.</p>
+    <div class="request-form">
+      <div class="field">
+        <span class="field-label">Articolo</span>
+        <div class="request-article-picker" id="requestArticlePicker" tabindex="0" role="button">
+          <span class="rap-placeholder" id="requestArticlePlaceholder">Clicca per scegliere un articolo…</span>
+          <span class="rap-codice" id="requestArticleCodice"></span>
+          <span class="rap-desc" id="requestArticleDesc"></span>
+          <span class="rap-arrow">▸</span>
+        </div>
+      </div>
+      <div class="field">
+        <span class="field-label">Minuti</span>
+        <input type="text" id="requestMinuti" inputmode="decimal" placeholder="Es. 60">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button id="cancelRequestBtn">Annulla</button>
+      <button id="saveRequestBtn" class="primary">Aggiungi richiesta</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST container -->
+<div id="toastContainer" class="toast-container"></div>
+
+<script>
+// =============================================================================
+// COSTANTI
+// =============================================================================
+const MINUTI_PER_UNITA = 450; // 1 unità = 450 min (≈ 1 giornata produttiva netta)
+const GIORNI_BLOCCO = 2;       // blocco di 2 giorni lavorativi
+const UNITA_PER_PERSONA = 2;   // 1 persona = 2 unità in un blocco da 2 gg
+
+const GIORNI_IT = ['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+const MESI_IT = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+
+// =============================================================================
+// CALCOLO DATE — GIORNI LAVORATIVI ITALIANI
+// =============================================================================
+function easterDate(year) {
+  // Algoritmo di Gauss
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+
+function italianHolidays(year) {
+  const easter = easterDate(year);
+  const easterMonday = new Date(easter);
+  easterMonday.setDate(easter.getDate() + 1);
+  return [
+    new Date(year, 0, 1),    // Capodanno
+    new Date(year, 0, 6),    // Epifania
+    easter,
+    easterMonday,
+    new Date(year, 3, 25),   // Festa Liberazione
+    new Date(year, 4, 1),    // Festa Lavoro
+    new Date(year, 5, 2),    // Festa Repubblica
+    new Date(year, 7, 15),   // Ferragosto
+    new Date(year, 10, 1),   // Ognissanti
+    new Date(year, 11, 8),   // Immacolata
+    new Date(year, 11, 25),  // Natale
+    new Date(year, 11, 26),  // S. Stefano
+  ].map(d => d.toDateString());
+}
+
+function isWorkingDay(date) {
+  const day = date.getDay();
+  if (day === 0 || day === 6) return false;
+  const hols = italianHolidays(date.getFullYear());
+  return !hols.includes(date.toDateString());
+}
+
+function addWorkingDays(startDate, days) {
+  const result = new Date(startDate);
+  let added = 0;
+  while (added < days) {
+    result.setDate(result.getDate() + 1);
+    if (isWorkingDay(result)) added++;
+  }
+  return result;
+}
+
+function formatDateLong(d) {
+  return `${GIORNI_IT[d.getDay()]} ${d.getDate()} ${MESI_IT[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function formatDateShort(d) {
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  return `${dd}/${mm}/${d.getFullYear()}`;
+}
+
+function isoDate(d) {
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  return `${d.getFullYear()}-${mm}-${dd}`;
+}
+
+function parseISO(s) {
+  const [y, m, d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+
+function getWeekNumber(d) {
+  const date = new Date(d);
+  date.setHours(0,0,0,0);
+  date.setDate(date.getDate() + 4 - (date.getDay() || 7));
+  const yearStart = new Date(date.getFullYear(),0,1);
+  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+}
+
+function isSameDay(d1, d2) {
+  return d1.getFullYear() === d2.getFullYear()
+      && d1.getMonth() === d2.getMonth()
+      && d1.getDate() === d2.getDate();
+}
+
+// =============================================================================
+// FORMATTAZIONE NUMERI ITALIANA
+// =============================================================================
+function fmtNum(n, decimals = 2) {
+  if (n === 0 || n === null || isNaN(n)) return (0).toFixed(decimals).replace('.', ',');
+  return n.toFixed(decimals).replace('.', ',');
+}
+
+function fmtInt(n) {
+  return Math.round(n).toString();
+}
+
+function parseNum(s) {
+  if (typeof s === 'number') return s;
+  if (!s) return 0;
+  return parseFloat(String(s).replace(',', '.').replace(/[^\d.-]/g,'')) || 0;
+}
+
+function capitalizeFirstLetters(str) {
+  if (str == null) return str;
+  // Title Case: tutto minuscolo, poi maiuscola dopo inizio stringa o separatori
+  return String(str).toLowerCase().replace(/(^|[\s./_-])(\S)/g, (m, sep, ch) => sep + ch.toUpperCase());
+}
+
+// =============================================================================
+// STORAGE
+// =============================================================================
+const STORAGE_KEY = 'preparazione_dg_blocks';
+
+async function loadBlocks() {
+  let blocks;
+  try {
+    const result = await window.storage.get(STORAGE_KEY);
+    if (result && result.value) {
+      blocks = JSON.parse(result.value);
+    }
+  } catch (e) {
+    // chiave non esistente o errore
+  }
+  if (!blocks) blocks = seedData();
+  // Retrocompatibilità: blocchi senza campo confirmed sono considerati confermati
+  blocks.forEach(b => {
+    if (b.confirmed === undefined) b.confirmed = true;
+  });
+  return blocks;
+}
+
+async function saveBlocks(blocks) {
+  try {
+    await window.storage.set(STORAGE_KEY, JSON.stringify(blocks));
+  } catch (e) {
+    console.error('Errore salvataggio:', e);
+    showToast('Impossibile salvare i dati. Riprova.', 'error', 4000);
+  }
+}
+
+// =============================================================================
+// DATI INIZIALI (dal tuo screenshot)
+// =============================================================================
+function seedData() {
+  return [
+    {
+      id: 'block-' + Date.now() + '-1',
+      entryDate: '2026-02-10',
+      confirmed: true,
+      rows: [
+        { codice: 'M26898', descrizione: 'Ph.Holder MNG', minuti: 9.77, bollettino: '', quantita: 96, note: 'RENATO', highlight: false },
+        { codice: 'M45831', descrizione: 'Neo Boulogne NM MNG Noir', minuti: 23.26, bollettino: '', quantita: 0, note: 'SARA', highlight: false },
+        { codice: 'M14019', descrizione: 'Rush Bumbag MNG Archive', minuti: 29.26, bollettino: '', quantita: 48, note: 'OLDERIGO', highlight: false },
+        { codice: 'M46203', descrizione: 'Carryall MNG VVN', minuti: 30.89, bollettino: '', quantita: 48, note: 'SARA', highlight: false },
+        { codice: 'M28023', descrizione: 'Rush Bumbag Wash.MNG BL', minuti: 17.93, bollettino: '', quantita: 72, note: 'MAZZEI', highlight: false },
+        { codice: 'M24861', descrizione: 'Carryall PM Isola', minuti: 38.16, bollettino: '', quantita: 24, note: 'VERONICA', highlight: false },
+        { codice: 'Richieste', descrizione: '', minuti: 361.80, bollettino: 'M46203 70 - 74 - 77 MIRET', quantita: 1, note: '', highlight: false },
+        { codice: 'CHANEL', descrizione: '', minuti: 3.40, bollettino: 'CAMELIA ART AP 5259 OP25CC000522-523', quantita: 48, note: '', highlight: true },
+      ]
+    }
+  ];
+}
+
+// =============================================================================
+// CALCOLI PER BLOCCO
+// =============================================================================
+function calcRowUnita(row) {
+  return (parseNum(row.minuti) * parseNum(row.quantita)) / MINUTI_PER_UNITA;
+}
+
+function calcRequestUnita(req) {
+  // Le richieste sono lavori puntuali: minuti totali, senza quantità
+  return parseNum(req.minuti) / MINUTI_PER_UNITA;
+}
+
+function calcBlockTotals(block) {
+  let unitaTot = 0;
+  let quantitaTot = 0;
+  let minutiTot = 0;
+  block.rows.forEach(r => {
+    unitaTot += calcRowUnita(r);
+    quantitaTot += parseNum(r.quantita);
+    minutiTot += parseNum(r.minuti) * parseNum(r.quantita);
+  });
+  const requests = block.requests || [];
+  let minutiRichieste = 0;
+  requests.forEach(req => {
+    unitaTot += calcRequestUnita(req);
+    minutiTot += parseNum(req.minuti);
+    minutiRichieste += parseNum(req.minuti);
+  });
+  const persone = Math.ceil(unitaTot / UNITA_PER_PERSONA);
+  return {
+    unitaTot, quantitaTot, minutiTot, persone,
+    articoli: block.rows.length,
+    richieste: requests.length,
+    minutiRichieste
+  };
+}
+
+// =============================================================================
+// STATO APPLICAZIONE
+// =============================================================================
+let state = {
+  blocks: [],
+  filter: 'month',
+  search: '',
+  editingBlockId: null,
+  catalog: [],
+  picker: { blockId: null, rowIdx: null, target: 'row', filtered: [], focusedIdx: 0 },
+  requestDraft: { blockId: null, codice: '', descrizione: '', minuti: 0 }
+};
+
+// =============================================================================
+// RENDERING
+// =============================================================================
+function escapeHtml(s) {
+  return String(s ?? '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+function renderHeader() {
+  const today = new Date();
+  document.getElementById('todayDate').textContent = formatDateShort(today);
+  document.getElementById('todayWeek').textContent = getWeekNumber(today);
+}
+
+function getFilteredBlocks() {
+  let blocks = [...state.blocks].sort((a,b) =>
+    parseISO(b.entryDate) - parseISO(a.entryDate)
+  );
+
+  if (state.filter === 'month') {
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+    blocks = blocks.filter(b => {
+      const entry = parseISO(b.entryDate);
+      const exit = addWorkingDays(entry, GIORNI_BLOCCO);
+      return exit >= oneMonthAgo;
+    });
+  }
+
+  if (state.search.trim()) {
+    const q = state.search.toLowerCase();
+    blocks = blocks.filter(b =>
+      b.rows.some(r =>
+        (r.codice && r.codice.toLowerCase().includes(q)) ||
+        (r.descrizione && r.descrizione.toLowerCase().includes(q)) ||
+        (r.note && r.note.toLowerCase().includes(q)) ||
+        (r.bollettino && r.bollettino.toLowerCase().includes(q))
+      )
+    );
+  }
+
+  return blocks;
+}
+
+function renderBlock(block) {
+  const entry = parseISO(block.entryDate);
+  const exit = addWorkingDays(entry, GIORNI_BLOCCO);
+  const confirmed = block.confirmed !== false;
+  const totals = calcBlockTotals(block);
+  const week = getWeekNumber(entry);
+
+  const rowsHtml = block.rows.map((r, idx) => {
+    const unita = calcRowUnita(r);
+    return `
+      <tr data-row-idx="${idx}">
+        <td class="cell-week">${week}</td>
+        <td class="cell-unita">${fmtNum(unita)}</td>
+        <td class="cell-codice pickable" data-field="codice" data-row-idx="${idx}" title="Clicca per cambiare articolo">${escapeHtml(r.codice) || '<span class="placeholder">— scegli articolo —</span>'}</td>
+        <td class="cell-descrizione locked" data-field="descrizione">${escapeHtml(r.descrizione)}</td>
+        <td class="cell-minuti locked" data-field="minuti">${fmtNum(r.minuti)}</td>
+        <td class="cell-bollettino editable ${r.highlight ? 'highlight' : ''}" data-field="bollettino" contenteditable="true">${escapeHtml(r.bollettino)}</td>
+        <td class="cell-quantita editable" data-field="quantita" contenteditable="true">${fmtInt(r.quantita)}</td>
+        <td class="cell-note editable" data-field="note" contenteditable="true">${escapeHtml(r.note)}</td>
+        <td class="cell-actions">
+          <button class="icon-btn row-action" data-action="toggle-highlight" data-row-idx="${idx}" title="Evidenzia riga">★</button>
+          <button class="icon-btn row-action danger" data-action="delete-row" data-row-idx="${idx}" title="Elimina riga">✕</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  return `
+    <section class="block ${confirmed ? '' : 'unconfirmed'}" data-block-id="${block.id}">
+      <div class="block-side entry">
+        <div class="time-label">Entrata</div>
+        <div class="time">06:00</div>
+        <div class="date-vertical">${formatDateLong(entry)}</div>
+      </div>
+
+      <div class="block-main">
+        <div class="block-bar">
+          <div class="block-bar-actions">
+            ${!confirmed ? `<button class="icon-btn confirm-btn" data-action="confirm-block" title="Conferma Blocco">✓ Conferma</button>` : ''}
+            <button class="icon-btn new-block-btn" data-action="new-block" title="Crea Nuovo Blocco">+ Nuovo Blocco</button>
+            <button class="icon-btn" data-action="duplicate-block" title="Duplica Blocco">Duplica</button>
+            <button class="icon-btn" data-action="add-row" title="Aggiungi Riga">+ Riga</button>
+            <button class="icon-btn" data-action="edit-date" title="Modifica Data di Entrata">Modifica Data</button>
+            <button class="icon-btn danger" data-action="delete-block" title="Elimina Blocco">Elimina</button>
+          </div>
+        </div>
+
+        <table class="block-table">
+          <colgroup>
+            <col class="col-week"><col class="col-unita"><col class="col-codice">
+            <col class="col-descrizione"><col class="col-minuti"><col class="col-bollettino">
+            <col class="col-quantita"><col class="col-note"><col class="col-actions">
+          </colgroup>
+          <thead>
+            <tr>
+              <th class="col-week">Settimana</th>
+              <th class="col-unita">N° Unità<br>Caricate</th>
+              <th class="col-codice">Codice<br>Articolo</th>
+              <th class="col-descrizione">Descrizione Articolo</th>
+              <th class="col-minuti">Minuti</th>
+              <th class="col-bollettino">Bollettino</th>
+              <th class="col-quantita">Quantità</th>
+              <th class="col-note">Note</th>
+              <th class="col-actions"></th>
+            </tr>
+          </thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+
+        <div class="requests-section">
+          <div class="requests-header">
+            <span class="requests-title">Richieste</span>
+            <span class="requests-count">${totals.richieste === 0
+              ? 'Nessuna Richiesta'
+              : `${totals.richieste} ${totals.richieste === 1 ? 'Richiesta' : 'Richieste'} · ${fmtNum(totals.minutiRichieste)} Min`}</span>
+          </div>
+          <div class="requests-list">
+            ${(block.requests || []).length === 0
+              ? '<div class="requests-empty">Nessuna Richiesta Inserita. Clicca "+ Aggiungi Richiesta" Per Aggiungerne Una.</div>'
+              : (block.requests || []).map((req, idx) => `
+                <div class="request-item" data-request-idx="${idx}">
+                  <span class="request-codice">${escapeHtml(req.codice || '')}</span>
+                  <span class="request-desc">${escapeHtml(req.descrizione) || '<em>(senza descrizione)</em>'}</span>
+                  <span class="request-minuti">${fmtNum(req.minuti)} min</span>
+                  <button class="icon-btn row-action danger" data-action="delete-request" data-request-idx="${idx}" title="Elimina richiesta">✕</button>
+                </div>
+              `).join('')}
+          </div>
+        </div>
+
+        <div class="block-footer">
+          <div class="block-footer-stats">
+            <div class="block-stat">
+              <span class="stat-label">Articoli</span>
+              <span class="stat-value">${totals.articoli}</span>
+            </div>
+            <div class="block-stat">
+              <span class="stat-label">Qtà Totale</span>
+              <span class="stat-value">${fmtInt(totals.quantitaTot)}</span>
+            </div>
+            <div class="block-stat cyan">
+              <span class="stat-label">Totale FTE</span>
+              <span class="stat-value">${fmtNum(totals.unitaTot)}</span>
+            </div>
+          </div>
+          <div class="block-footer-actions">
+            <button class="ghost" data-action="add-row">+ Aggiungi Articolo</button>
+            <button class="ghost" data-action="add-request">+ Aggiungi Richiesta</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="block-side exit">
+        <div class="time-label">Uscita</div>
+        <div class="time">14:00</div>
+        <div class="date-vertical">${formatDateLong(exit)}</div>
+      </div>
+    </section>
+  `;
+}
+
+function render() {
+  renderHeader();
+  const blocks = getFilteredBlocks();
+  const container = document.getElementById('blocksContainer');
+
+  if (blocks.length === 0) {
+    container.innerHTML = `<div class="empty-state">
+      <p style="margin-bottom: 20px;">${state.search ? 'Nessun risultato per la ricerca.' : 'Nessun blocco nel periodo selezionato.'}</p>
+      <button class="icon-btn new-block-btn" data-action="new-block" style="padding: 12px 24px; font-size: 13px;">+ Nuovo Blocco</button>
+    </div>`;
+  } else {
+    container.innerHTML = blocks.map(renderBlock).join('');
+  }
+}
+
+// =============================================================================
+// CATALOGO ARTICOLI — fetch dal foglio Google "Registro Tempi Ciclo DG"
+// =============================================================================
+const SHEET_ID = '1vpThD_H9nyYKvQf0tylE-sJ5lOkYyVpA7VSoqpFrIfs';
+const SHEET_GID = '623594434';
+const CATALOG_STORAGE_KEY = 'preparazione_dg_catalog_v1';
+const CATALOG_TS_KEY = 'preparazione_dg_catalog_ts_v1';
+
+// Parser CSV robusto (gestisce virgolette, virgole interne, newline nelle celle)
+function parseCSV(text) {
+  const rows = [];
+  let row = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') {
+        if (text[i+1] === '"') { cur += '"'; i++; }
+        else inQuotes = false;
+      } else {
+        cur += c;
+      }
+    } else {
+      if (c === ',') { row.push(cur); cur = ''; }
+      else if (c === '"') inQuotes = true;
+      else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+      else if (c === '\r') { /* skip */ }
+      else cur += c;
+    }
+  }
+  if (cur.length || row.length) { row.push(cur); rows.push(row); }
+  return rows;
+}
+
+// Estrae catalogo dal CSV cercando le colonne giuste in base alle intestazioni
+function parseCatalogFromCSV(csv) {
+  const rows = parseCSV(csv);
+  if (!rows.length) return [];
+
+  // Trova la riga delle intestazioni cercando "Codice (SKU)"
+  let headerIdx = -1;
+  for (let i = 0; i < Math.min(rows.length, 10); i++) {
+    if (rows[i].some(c => c && c.trim() === 'Codice (SKU)')) {
+      headerIdx = i;
+      break;
+    }
+  }
+  if (headerIdx < 0) return [];
+
+  const header = rows[headerIdx];
+  const codiceCol = header.findIndex(c => c && c.trim() === 'Codice (SKU)');
+  const descCol = header.findIndex(c => c && c.trim() === 'Nome art.');
+  const minutiCol = header.findIndex(c => c && c.trim() === 'Preparazione');
+  if (codiceCol < 0) return [];
+
+  const seen = new Set();
+  const catalog = [];
+  for (let i = headerIdx + 1; i < rows.length; i++) {
+    const r = rows[i];
+    const codice = (r[codiceCol] || '').trim();
+    const descrizione = descCol >= 0 ? (r[descCol] || '').trim() : '';
+    const minutiRaw = minutiCol >= 0 ? (r[minutiCol] || '').trim() : '';
+    if (!codice) continue;
+    const minuti = parseNum(minutiRaw);
+    // Chiave di dedupe: codice + descrizione (stesso codice può apparire con varianti)
+    const key = codice + '|' + descrizione;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    catalog.push({ codice, descrizione, minuti });
+  }
+  return catalog;
+}
+
+// Fetch dal foglio Google: prova prima gviz (più CORS-friendly), poi export
+async function fetchCatalog() {
+  const urls = [
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`,
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`,
+  ];
+  for (const url of urls) {
+    try {
+      const res = await fetch(url, { credentials: 'omit', mode: 'cors' });
+      if (!res.ok) continue;
+      const csv = await res.text();
+      const cat = parseCatalogFromCSV(csv);
+      if (cat.length > 0) return cat;
+    } catch (e) {
+      console.warn('Fetch fallito per', url, e);
+    }
+  }
+  return null;
+}
+
+async function loadCatalogFromStorage() {
+  try {
+    const r = await window.storage.get(CATALOG_STORAGE_KEY);
+    if (r && r.value) return JSON.parse(r.value);
+  } catch (e) {}
+  return [];
+}
+
+async function saveCatalogToStorage(catalog) {
+  try {
+    await window.storage.set(CATALOG_STORAGE_KEY, JSON.stringify(catalog));
+    await window.storage.set(CATALOG_TS_KEY, new Date().toISOString());
+  } catch (e) {
+    console.error('Errore save catalog:', e);
+  }
+}
+
+async function refreshCatalog(silent = false) {
+  if (!silent) showToast('Carico catalogo dal foglio Google…', 'info');
+  const updateStatus = (txt) => {
+    const el = document.getElementById('pickerCatalogStatus');
+    if (el) el.textContent = txt;
+  };
+  const fresh = await fetchCatalog();
+  if (!fresh) {
+    if (!silent) showToast('Impossibile caricare il catalogo. Verifica che il foglio sia pubblico ("Chiunque con il link").', 'error', 6000);
+    updateStatus(`Catalogo locale: ${state.catalog.length} articoli (refresh fallito)`);
+    return false;
+  }
+  state.catalog = fresh;
+  await saveCatalogToStorage(fresh);
+  updateStatus(`${fresh.length} articoli disponibili`);
+  if (!silent) showToast(`Catalogo aggiornato: ${fresh.length} articoli`, 'success');
+  return true;
+}
+
+// =============================================================================
+// CATALOGO ARTICOLI EMBEDDED
+// Estratto dal foglio "Registro Tempi Ciclo DG" (LV/Céline/Fendi/Chanel/Dior)
+// 311 articoli con codice SKU, descrizione e minuti di preparazione.
+// Per aggiornare: ri-estrai i dati con web_fetch e rigenera questo array.
+// =============================================================================
+const EMBEDDED_CATALOG = [{"c":"10I59 2DQ2","d":"Tabou Bag","m":21.03},{"c":"11076 2EQ8","d":"Asymmetric Clutch","m":23.06},{"c":"11076 3EPT","d":"Asymmetric Clutch","m":21.53},{"c":"116613FX9","d":"MEDIUM LUISE","m":38.39},{"c":"119173FX9","d":"SMALL LUISE","m":30.08},{"c":"120722FQM","d":"LULU","m":21.92},{"c":"123832O90","d":"SHOP IN GALLERY SHOP IN BIG","m":17.93},{"c":"123912GXC","d":"ISABEL","m":12.55},{"c":"18842 3BF4","d":"Triomphe (pelle)","m":56.81},{"c":"18888 2BZ4","d":"Triomphe","m":59.77},{"c":"18888 2DAQ","d":"Triomphe","m":78.44},{"c":"18888 2DBA","d":"Triomphe","m":79.93},{"c":"19144 2CAS","d":"Small Bucket","m":21.62},{"c":"19144 2CHI","d":"Small Bucket","m":22.32},{"c":"19150 2BZJ","d":"Folco (Piccola)","m":28.64},{"c":"19150 2BZJ MIR","d":"Folco (Piccola - No Lacci)","m":19.68},{"c":"19414 2CUZ","d":"Shoulderbag","m":37.98},{"c":"19414 2DUP","d":"Shoulderbag","m":34.98},{"c":"19414 3BF4","d":"Shoulderbag","m":28.51},{"c":"19450 2CIM","d":"Horizontal Messenger","m":24.95},{"c":"19450 3DOT","d":"Horizontal Messenger","m":25.4},{"c":"19693 2BZJ","d":"Folco (Grande)","m":29.55},{"c":"19714 2BZJ","d":"Strap Box (Tessuto)","m":35.87},{"c":"19714 3DPE","d":"Strap Box (Pelle)","m":46.62},{"c":"19714 4DRM","d":"Strap Box","m":46.62},{"c":"19758 2CAS","d":"Small Boston","m":30.43},{"c":"19826 3DU3","d":"Folco (costola)","m":21.1},{"c":"19920 2EDO","d":"Cube (rafia)","m":11.32},{"c":"19920 2EIN","d":"Cube (tessuto)","m":48.39},{"c":"19920 3DU3","d":"Cube (pelle)","m":46.75},{"c":"19926 3DU3","d":"Small Box","m":35.82},{"c":"7VA434 A72V","d":"Marsupio","m":9.75},{"c":"7VA434 A9XS","d":"Marsupio","m":16.18},{"c":"7VA480 AC9L","d":"Shoppingo Tote (XL)","m":23.42},{"c":"7VA526 AHUE","d":"Marsupio (Hobo Pouch)","m":9.65},{"c":"7VA550 AHU8","d":"Suede Shoulder Bag","m":13.07},{"c":"7VA558 AHU6","d":"Tote Logo","m":12.09},{"c":"7VA558 AJI7","d":"Tote Logo","m":9.04},{"c":"7VA562 AJF8","d":"Marsupio Fendi","m":16.82},{"c":"7VA562 AJI9 AIT1","d":"Baguette Bag","m":32.89},{"c":"7VA562 AJJ4","d":"Baguette Bag","m":1.18},{"c":"7VA562 ALKA","d":"Marsupio Fendi","m":16.82},{"c":"7VA562 AMAC","d":"Marsupio","m":12.83},{"c":"7VA562 AND4","d":"Marsupio","m":14.06},{"c":"7VA586 ALA8","d":"Marsupio","m":30.91},{"c":"7VV157 AGOM","d":"Pack Shopping Bag Small","m":33.48},{"c":"7VZ056 AGOM","d":"New Backpack Coulisse","m":15.04},{"c":"7VZ056 AMAX","d":"Zaino","m":14.37},{"c":"7VZ070 AMAA","d":"Backpack","m":14.37},{"c":"8BH372 ALFY","d":"Sunshine Large","m":16.89},{"c":"8BH372 ALG4","d":"Sunshine Large","m":16.38},{"c":"8BH372 ALVY","d":"Sunshine Large","m":31.71},{"c":"8BH372 ALVY-2","d":"Sunshine Large","m":31.71},{"c":"8BH373 AK5U","d":"Sunshine Shopper","m":21.1},{"c":"8BH374 A9P6","d":"Tote Bag","m":28.84},{"c":"8BH374 AFL9","d":"Tote Bag","m":29.19},{"c":"8BH386 ABVL","d":"Sunshine","m":14.34},{"c":"8BH386 AHN5","d":"Sunshine Logo","m":29.4},{"c":"8BH386 AHWC","d":"Sunshine Medium","m":25.26},{"c":"8BH386 AJH7","d":"Sunshine Medium","m":16.12},{"c":"8BH386 AJHJ AJHI","d":"Sunshine Medium","m":24.91},{"c":"8BH386 AJT0","d":"Sunshine Medium","m":19.01},{"c":"8BH386 AJTX AJTY","d":"Sunshine Medium","m":21.8},{"c":"8BH386 AKBS ABVV","d":"Sunshine Medium","m":19.85},{"c":"8BH386 ALFY","d":"Sunshine Medium","m":18.14},{"c":"8BL145 A6CO","d":"By The Way Mini","m":25.78},{"c":"8BL146 5QJ 1D5","d":"By The Way","m":22.48},{"c":"8BL146 A6CO","d":"By The Way","m":22.4},{"c":"8BL146 AC9L","d":"By The Way","m":23.29},{"c":"8BN310 A5E9","d":"Peekaboo X-Lite","m":40.8},{"c":"8BN321 AF2J","d":"Peekaboo","m":61.16},{"c":"8BN321 AM2F","d":"Peakaboo","m":71.07},{"c":"8BS010 A18B","d":"Mon Trésor","m":17.42},{"c":"8BS010 A659","d":"Mon Trésor","m":17.67},{"c":"8BS010 A9P6","d":"Mon Trésor","m":20.02},{"c":"8BS010 ALMY","d":"Mon Trésor","m":16.33},{"c":"8BS051 AFQP","d":"Mini Sunshine Shopper","m":14.63},{"c":"8BS051 AJH7","d":"Mini Sunshine Shopper","m":14.02},{"c":"8BT315 A5TZ","d":"Kan I","m":38.88},{"c":"8BT346 ABVL","d":"Moonlight","m":26.53},{"c":"8BT346 AFL5","d":"Moonlight","m":32.16},{"c":"8BT346 AHMQ","d":"Moonlight","m":26.53},{"c":"8M0417 A659","d":"Kan U","m":30.74},{"c":"AP0250 Y01864","d":"Wallet On Chain","m":37.83},{"c":"AP1340","d":"Coco Beauty","m":23.79},{"c":"AP1341","d":"Vanity","m":21.44},{"c":"AP1450 B02916","d":"Wallet On Chain","m":36.04},{"c":"AP2096","d":"Ph. Hold With Chain","m":21.43},{"c":"AP2198","d":"Mini Vanity Agneau","m":29.83},{"c":"AP2199","d":"Long Vanity Agneau","m":26.68},{"c":"AP2303","d":"Purse Vanity Blue","m":18.97},{"c":"AP2727 C2212","d":"Small FB Chain","m":10.13},{"c":"AP3043","d":"Wallet on Chain","m":31.26},{"c":"AP3044","d":"Long Vanity with Chain","m":18.37},{"c":"AP3204","d":"Vanity W/Chain","m":21.36},{"c":"AP3224","d":"Small Flap Purse With Chain","m":8.12},{"c":"AP3226","d":"Timeless Classic Handle","m":29.55},{"c":"AP3435","d":"Nano Sac","m":19.91},{"c":"AP3651","d":"Perfect Fit","m":21.37},{"c":"AP3652","d":"Perfect Fit","m":20.89},{"c":"AP3656.B16220","d":"CHANEL 31","m":18.61},{"c":"AP3663","d":"Strass On Top","m":21.37},{"c":"AP3703","d":"Strass On Top","m":21.37},{"c":"AP3797","d":"Coco Square Strass Handle","m":23.52},{"c":"AP3799","d":"Vanity with Chain","m":21.44},{"c":"AP3848","d":"Pop Up Chain","m":34.41},{"c":"AP3849 B15755","d":"Pop Up Chain","m":23.2},{"c":"AP3850","d":"PH Hold","m":9.93},{"c":"AP3952","d":"Mini Bag","m":38.88},{"c":"AP3954","d":"Coco Square Pearley Handle","m":23.52},{"c":"AP3956","d":"Pearley Handle","m":21.44},{"c":"AP4013 B16882","d":"Girly Chain","m":38.24},{"c":"AP4013 B17173","d":"Girly Chain","m":37.28},{"c":"AP4014","d":"Girly Chain","m":13.0},{"c":"AP4014 Drap De Lain","d":"Girly Chain Drap De Lain","m":13.61},{"c":"AP4042","d":"AP4042 B17687","m":38.88},{"c":"AP4044","d":"Treasure Handle","m":23.52},{"c":"AP4046","d":"Treasure Handle","m":21.44},{"c":"AP4205","d":"Treasure Handle","m":23.79},{"c":"AP4244.B05061","d":"Coco Handle","m":22.97},{"c":"AP4245.B05061","d":"MINI COCO HANDLE","m":29.29},{"c":"AP4323","d":"O-MINI BAG","m":34.73},{"c":"AP4402","d":"PURSE W/CHAIN","m":24.17},{"c":"AP4404","d":"Vanity W/Chain","m":24.04},{"c":"AP4512","d":"PIPING PURSE W/CHAIN","m":28.57},{"c":"AP4515","d":"PIPING PURSE W/CHAIN","m":25.99},{"c":"AP4516","d":"PIPING PURSE W/CHAIN","m":21.35},{"c":"AS4416.B20787","d":"NANO SHOPPING LOSANGHE","m":27.5},{"c":"CD0187","d":"Cadeaux","m":21.89},{"c":"M11300","d":"Bumbag flower rose jasmin","m":20.12},{"c":"M11306","d":"Woc Tigre MNG Orange","m":23.57},{"c":"M11452","d":"Woc Coniglio MNG Rose","m":21.15},{"c":"M11539","d":"Rush Bumbag Dust Mng","m":22.59},{"c":"M11594","d":"Hamac Bag PM MNG Gradient Navy","m":12.67},{"c":"M11657","d":"Avenue Messenger NM Taiga Noir","m":21.25},{"c":"M11683","d":"Hamac Bag MNG Storm Am Cup","m":8.6},{"c":"M11794","d":"Vivienne BPack Nylon Shearling","m":37.45},{"c":"M11799","d":"Bumbag MM M. SHEARLING C.C.","m":12.33},{"c":"M11843","d":"Carryall Pm Shearling","m":34.95},{"c":"M11896","d":"M11896","m":33.83},{"c":"M11979","d":"Loop Hobo Nylon","m":46.02},{"c":"M12327","d":"Saumur MNG Mini Lin","m":32.38},{"c":"M12510","d":"Hamac PM Shadow","m":21.29},{"c":"M12579","d":"Carryall PM gris","m":30.45},{"c":"M12583","d":"Carryall MM gris","m":26.65},{"c":"M12718","d":"HAMAC BAG MM DAMOFLAGE (Floriano)","m":25.56},{"c":"M12718","d":"HAMAC BAG MM DAMOFLAGE (Valentano)","m":12.07},{"c":"M12721","d":"Slope Bumbag MNG Orange","m":16.7},{"c":"M12749","d":"Neo Noe MNG INK GRIS","m":21.06},{"c":"M12850","d":"HOBO HAMAC SHADOW NOIR (Valentano)","m":21.12},{"c":"M12850","d":"HOBO HAMAC SHADOW NOIR (Floriano)","m":17.9},{"c":"M12888","d":"CARRYALL BB VIBE NOIR","m":14.6},{"c":"M12919","d":"Carryall PM Vanille","m":30.45},{"c":"M12925","d":"ALL IN BB VVT MNG","m":13.97},{"c":"M12939","d":"Looping NM MNG","m":10.8},{"c":"M13014","d":"Carryall BB NM MNG","m":22.63},{"c":"M13105","d":"Carryall VIBE MM NOIR","m":28.62},{"c":"M13265","d":"NEO BOULOGNE RED SAKURA","m":20.44},{"c":"M13324","d":"Noe Trunk MNG","m":10.12},{"c":"M13617","d":"SUNSET","m":16.03},{"c":"M13676","d":"NEO NOE BB RED DROP","m":13.95},{"c":"M14019","d":"RUSH BUMBAG ARCHIVE","m":29.26},{"c":"M14099","d":"PHONE HOLDER","m":9.77},{"c":"M14268","d":"Carryall Vibe MM Kaky","m":26.65},{"c":"M14377","d":"NOE CARGO ISOLA PM","m":19.03},{"c":"M14460","d":"POCHETTE VOYAGE RAPHIA","m":13.48},{"c":"M14806","d":"BELT BAG MNG","m":24.91},{"c":"M14868","d":"NEO NOE MACAU","m":15.33},{"c":"M14920","d":"RUSH BUMBAG DAMO BLACK","m":23.58},{"c":"M15271","d":"RUSH BUMBAG LANDSCAPE","m":27.02},{"c":"M15338","d":"PHONE HOLDER XMAS VIVIENNE","m":3.82},{"c":"M20687","d":"New Wave","m":41.82},{"c":"M20958","d":"Neo Sac Plat BB EPI","m":29.63},{"c":"M20973","d":"Speedy Pillow Silver","m":16.9},{"c":"M21427","d":"Bumbag Snow","m":14.71},{"c":"M21615","d":"Chain Bag N.Wave GM","m":33.63},{"c":"M21720","d":"Hold Me Wave (Floriano)","m":34.84},{"c":"M21720","d":"Hold Me Wave (Valentano)","m":40.83},{"c":"M21753","d":"NN Lady B","m":13.39},{"c":"M21853","d":"Multipochette Bumbag Comics","m":25.19},{"c":"M21890","d":"Duo Slingb Shadow","m":19.92},{"c":"M22494","d":"Comet Bumbag Spotlight","m":21.07},{"c":"M22986","d":"Néo Noé Resort","m":32.73},{"c":"M23445","d":"Speedy 20","m":29.51},{"c":"M23471","d":"Saumur BB EPI","m":23.96},{"c":"M23615","d":"PSP Monopaname","m":18.19},{"c":"M23688","d":"Alma PM","m":33.41},{"c":"M23715","d":"Bumbag Shearling","m":12.33},{"c":"M23723","d":"Alma GM","m":27.87},{"c":"M23779","d":"Hamac Bag Kaki","m":11.08},{"c":"M23790","d":"Hamac Bag Kastroll","m":11.01},{"c":"M23835","d":"Crossbody Moon Eclipse","m":15.18},{"c":"M23838","d":"Crossbody Moon LV K.RV","m":16.99},{"c":"M24048","d":"Néo Néo BB EMP","m":26.75},{"c":"M24447","d":"Hobo","m":31.44},{"c":"M24468","d":"HOBO HAMAC NV M.SHAD.SAND","m":19.45},{"c":"M24649","d":"Neo Noè BB M.Emp. Aquarell","m":27.05},{"c":"M24722","d":"NeoNoe BB Raphia (sertissage)","m":41.19},{"c":"M24861","d":"Carryall PM Isola (Valentano)","m":38.16},{"c":"M24861","d":"Carryall PM Isola (Floriano)","m":20.67},{"c":"M24987","d":"Rush Bumbag Hawaii Pink","m":17.86},{"c":"M24992","d":"Rush Bumbag Hawaii Navy","m":17.86},{"c":"M25143","d":"Carryall MM Isola","m":20.15},{"c":"M25225","d":"Hamac XL","m":31.51},{"c":"M25519","d":"NANO BOULOGNE","m":14.64},{"c":"M25519 VT10","d":"NANO BOULOGNE VT10","m":14.64},{"c":"M25522","d":"OFF DUTY BP. VIBE NOIR","m":23.34},{"c":"M25545","d":"OFF DUTY MM VIBE NOIR","m":18.34},{"c":"M25546","d":"Carryall Noe Cargo Isola Kaki","m":19.03},{"c":"M25675","d":"NEO NOE BB EMP MISTY","m":11.65},{"c":"M25686","d":"PORTAROSSETTO EPI","m":4.52},{"c":"M25694","d":"PORTAROSSETTO MNG","m":3.05},{"c":"M25919","d":"PHONE HOLDER TRAVEL WITH","m":4.16},{"c":"M26007","d":"GYOZA PO.CLES MNG","m":12.62},{"c":"M26101","d":"COSMETIQUE MIROIR","m":10.26},{"c":"M26186","d":"GYOZA L.G. BRO.","m":20.64},{"c":"M26786","d":"VIVIENNE BPACK DENIM","m":19.08},{"c":"M26898","d":"PHONE HOLDER MNG","m":9.77},{"c":"M26912","d":"RUSH NYLON DENIM","m":17.35},{"c":"M26933","d":"RUSH BUMB CAMOUFLAGE KAKI","m":15.02},{"c":"M26956","d":"SPEEDY 25 BA.NR PUFFYG.BJ","m":12.15},{"c":"M27096","d":"SOLO MNG","m":10.3},{"c":"M27096 VT","d":"SOLO MNG VT","m":14.06},{"c":"M27152","d":"RUSH BUMBAG HERITAGE LIN","m":23.4},{"c":"M27790","d":"BOULOGNE PM NM MNG MUL.B","m":21.33},{"c":"M27825","d":"MULTIPASS MNG","m":8.33},{"c":"M28101","d":"CARRYALL EW MNG","m":7.92},{"c":"M28160","d":"CARRYALL EW VIBE NOIR","m":13.59},{"c":"M30936","d":"Duo Slingb Gram","m":16.49},{"c":"M31029","d":"Crossbody Taigarama","m":14.61},{"c":"M43687","d":"Porte Habits (MNG)","m":14.08},{"c":"M43717","d":"Porte Habits Eclipse","m":14.58},{"c":"M44020","d":"Néo Noé MNG","m":4.9},{"c":"M44151","d":"Vavin Cuir Emp. PM","m":40.38},{"c":"M44550","d":"Vavin Cuir Emp. BB","m":41.9},{"c":"M45306","d":"Néo Noé EMP (Floriano)","m":7.57},{"c":"M45306","d":"Néo Noé EMP (Valentano)","m":20.73},{"c":"M45497","d":"Néo Noé Bicolor (Floriano)","m":9.6},{"c":"M45497","d":"Néo Noé Bicolor (Valentano)","m":23.83},{"c":"M45831","d":"Neo Boulogne (Valentano)","m":23.26},{"c":"M45831","d":"NEO BOULOGNE NM MNG NOIR (Floriano)","m":17.71},{"c":"M45831 VT/10","d":"NEO BOULOGNE VT/10","m":22.83},{"c":"M45832","d":"Neo Boulogne VVN (Floriano)","m":18.25},{"c":"M45832","d":"Neo Boulogne VVN (Valentano)","m":18.45},{"c":"M45847","d":"Neo Sac Plat MNG","m":27.83},{"c":"M45914","d":"Tote Saumur","m":18.0},{"c":"M46035","d":"Bumbag Eclipse","m":15.37},{"c":"M46092","d":"Speedy 20 (vert)","m":23.52},{"c":"M46173","d":"Néo Noé Mermaid (lilas)","m":28.57},{"c":"M46203","d":"Carryall MNG","m":30.89},{"c":"M46265","d":"Sac Plat BB MNG","m":28.77},{"c":"M46268","d":"Speedy 20 (lilas)","m":25.47},{"c":"M46269","d":"Néo Noé Mermaid (vert)","m":30.48},{"c":"M46311","d":"Loop","m":22.07},{"c":"M46319","d":"Néo Noé Shearling","m":4.25},{"c":"M46413","d":"M46413 (rouge)","m":14.42},{"c":"M46453","d":"Sac Plat Mini M.Eclipse","m":33.12},{"c":"M46548","d":"Tilsitt NV MNG","m":27.84},{"c":"M46581","d":"Neo Noe BB P.MNG VVN","m":7.71},{"c":"M46734","d":"Néo Noé EMP Costellation","m":30.61},{"c":"M46740","d":"Saumur BB MNG","m":18.73},{"c":"M46784","d":"High Rise","m":14.45},{"c":"M46798","d":"Slope Bumbag MNG White","m":13.52},{"c":"M46917","d":"Mini Bumbag EMP","m":18.68},{"c":"M46990","d":"ALMA BB SR MNG","m":13.15},{"c":"M47038","d":"Néo Noé MME","m":30.09},{"c":"M47058","d":"Rush Bumbag M.Shad.N","m":18.37},{"c":"M47096","d":"Just in case MNG","m":22.0},{"c":"M47158","d":"Hamac Bag Eclipse","m":13.94},{"c":"M55948","d":"P9","m":35.7},{"c":"M56461","d":"Multipochette","m":46.25},{"c":"M57835","d":"Papillon Trunk","m":30.15},{"c":"M58658","d":"Neo Sac Plat","m":26.12},{"c":"M58660","d":"Neo Sac Plat","m":34.32},{"c":"M58664","d":"Wave (Valentano)","m":37.78},{"c":"M58664","d":"Wave (Floriano)","m":37.78},{"c":"M58727","d":"P9 Soft","m":34.42},{"c":"M58981","d":"Backpack Pillow","m":37.47},{"c":"M59009","d":"Speedy Pillow","m":23.4},{"c":"M80446","d":"Utility MNG (LV)","m":39.1},{"c":"M80446","d":"Utility CUIR (LV)","m":39.1},{"c":"M81295","d":"Petit Sac Plat","m":19.03},{"c":"M81867","d":"Petit Sac Plat Dots","m":19.61},{"c":"M82208","d":"Mini Bumbag M. Emp.","m":19.78},{"c":"M82335","d":"Mini Bumbag Monogram","m":18.96},{"c":"M82567","d":"Sac Plat Taurillon","m":31.22},{"c":"M82717","d":"Nano Alma MNG","m":14.32},{"c":"M83019","d":"Nano Alma Mallettage","m":26.14},{"c":"M83048","d":"Nano Alma","m":26.14},{"c":"M83184","d":"Alma","m":34.18},{"c":"M83346","d":"Enveloppe Mini Cruiser","m":27.69},{"c":"M83521","d":"Noe Purse Raphia","m":11.89},{"c":"M90375","d":"Spring Street","m":22.76},{"c":"M9203-MOS","d":"Montaigne Box","m":44.39},{"c":"M9203-TZQ","d":"Montaigne Bag","m":37.87},{"c":"M9208-TZQ","d":"Montaigne Chain Bag","m":43.16},{"c":"M9234-TZQ","d":"Montaigne Canvas (bord. francese)","m":37.21},{"c":"M9234-TZQ (2)","d":"Montaigne Canvas","m":37.21},{"c":"M9242","d":"Dior Caro","m":30.0},{"c":"M9334-HEL","d":"30 Montaigne","m":43.98},{"c":"M9334-TZQ","d":"Montaigne Mini","m":38.5},{"c":"MT","d":"MANIGLIA TRIPEL","m":1.43},{"c":"N00158","d":"BOOK MESSENGER","m":40.1},{"c":"N00205","d":"RUSH BUM. D.DEN.3D","m":18.31},{"c":"N00230","d":"BELT BAG DAMIER","m":24.54},{"c":"N40113","d":"Vavin Toile Damier PM","m":38.24},{"c":"N40606","d":"ALMA BB SR D.EBE","m":12.26},{"c":"N40811","d":"BOOK MESSENGER","m":25.82},{"c":"N40855","d":"ALL IN BB D. AZUR","m":13.13},{"c":"N40862","d":"SAC PLAT PM","m":31.37},{"c":"S5620-TZQ","d":"Montaigne Saddle Bag","m":38.31}].map(it => ({
+  codice: it.c,
+  descrizione: it.d,
+  minuti: it.m
+}));
+
+async function handleCatalogClick() {
+  const btn = document.getElementById('refreshCatalogBtn');
+  const originalText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Ricarico…';
+
+  try {
+    // Ricarica il catalogo embedded (utile se l'utente l'ha modificato manualmente
+    // e vuole tornare alla versione "ufficiale" del foglio LV)
+    state.catalog = EMBEDDED_CATALOG.slice();
+    await saveCatalogToStorage(state.catalog);
+    btn.textContent = '✓ ' + state.catalog.length + ' articoli';
+    showToast(`Catalogo ricaricato: ${state.catalog.length} articoli dal foglio LV`, 'success', 4000);
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }, 2500);
+  } catch (e) {
+    console.error('Catalog reload error:', e);
+    btn.textContent = originalText;
+    btn.disabled = false;
+    showToast('Errore nel ricaricare il catalogo: ' + (e.message || 'sconosciuto'), 'error', 4000);
+  }
+}
+
+// =============================================================================
+// CATALOG MODAL — gestione import CSV (drag&drop, paste, file picker)
+// =============================================================================
+function openCatalogModal() {
+  updateCatalogModalStatus();
+  document.getElementById('catalogModal').classList.add('show');
+}
+
+function closeCatalogModal() {
+  document.getElementById('catalogModal').classList.remove('show');
+}
+
+function updateCatalogModalStatus() {
+  const el = document.getElementById('catalogModalStatus');
+  if (!el) return;
+  if (state.catalog.length === 0) {
+    el.textContent = 'Nessun articolo caricato. Importa il CSV dal foglio Google.';
+  } else {
+    el.textContent = `${state.catalog.length} articoli in catalogo.`;
+  }
+}
+
+async function importCatalogFromCSV(csvText, sourceLabel = 'CSV') {
+  if (!csvText || !csvText.trim()) {
+    showToast('Il contenuto è vuoto.', 'error');
+    return false;
+  }
+  const cat = parseCatalogFromCSV(csvText);
+  if (!cat || cat.length === 0) {
+    showToast('Nessun articolo trovato nel CSV. Verifica che le colonne "Codice (SKU)", "Nome art." e "Preparazione" esistano.', 'error', 6000);
+    return false;
+  }
+  state.catalog = cat;
+  await saveCatalogToStorage(cat);
+  updateCatalogModalStatus();
+  showToast(`Catalogo aggiornato: ${cat.length} articoli da ${sourceLabel}`, 'success', 4000);
+  return true;
+}
+
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const ok = await importCatalogFromCSV(e.target.result, file.name);
+    if (ok) {
+      setTimeout(closeCatalogModal, 800);
+    }
+  };
+  reader.onerror = () => showToast('Errore lettura file.', 'error');
+  reader.readAsText(file, 'utf-8');
+}
+
+function setupCatalogModal() {
+  const modal = document.getElementById('catalogModal');
+  const fileInput = document.getElementById('csvFileInput');
+  const dropZone = document.getElementById('fileDropZone');
+  const pasteArea = document.getElementById('csvPasteArea');
+  const importPasteBtn = document.getElementById('importPasteBtn');
+  const closeBtn = document.getElementById('closeCatalogBtn');
+
+  // File picker
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files[0]) handleFile(e.target.files[0]);
+  });
+
+  // Drag & drop
+  ['dragover', 'dragenter'].forEach(ev =>
+    dropZone.addEventListener(ev, (e) => {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    })
+  );
+  ['dragleave', 'drop'].forEach(ev =>
+    dropZone.addEventListener(ev, (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+    })
+  );
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+
+  // Paste import
+  importPasteBtn.addEventListener('click', async () => {
+    const ok = await importCatalogFromCSV(pasteArea.value, 'paste');
+    if (ok) { pasteArea.value = ''; setTimeout(closeCatalogModal, 800); }
+  });
+
+  // Close
+  closeBtn.addEventListener('click', closeCatalogModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target.id === 'catalogModal') closeCatalogModal();
+  });
+}
+
+// =============================================================================
+// ARTICLE PICKER — selettore catalogo
+// =============================================================================
+function openArticlePicker(blockId, rowIdx = null, target = 'row') {
+  state.picker.blockId = blockId;
+  state.picker.rowIdx = rowIdx; // se valorizzato → modalità "modifica riga"
+  state.picker.target = target; // 'row' (default) | 'request'
+  state.picker.focusedIdx = 0;
+  const modal = document.getElementById('articlePickerModal');
+  const search = document.getElementById('articleSearch');
+  const status = document.getElementById('pickerCatalogStatus');
+  const title = document.getElementById('pickerTitle');
+  const manualSection = document.getElementById('manualEntrySection');
+  const toggleBtn = document.getElementById('toggleManualEntryBtn');
+
+  // Titolo e prefill in base alla modalità
+  if (target === 'request') {
+    title.textContent = state.requestDraft.codice ? 'Cambia Articolo della Richiesta' : 'Articolo della Richiesta';
+    search.value = state.requestDraft.codice || '';
+  } else if (rowIdx != null) {
+    const block = state.blocks.find(b => b.id === blockId);
+    const row = block?.rows?.[rowIdx];
+    title.textContent = row?.codice ? 'Cambia Articolo' : 'Seleziona Articolo';
+    search.value = row?.codice || '';
+  } else {
+    title.textContent = 'Seleziona Articolo';
+    search.value = '';
+  }
+
+  // Reset sezione manuale
+  manualSection.style.display = 'none';
+  toggleBtn.textContent = 'Articolo non in catalogo? Inserisci manualmente';
+  document.getElementById('manualCodice').value = '';
+  document.getElementById('manualDescrizione').value = '';
+  document.getElementById('manualMinuti').value = '';
+
+  status.textContent = `${state.catalog.length} articoli disponibili`;
+  renderPickerList(search.value);
+  modal.classList.add('show');
+  setTimeout(() => search.focus(), 50);
+}
+
+function closeArticlePicker() {
+  document.getElementById('articlePickerModal').classList.remove('show');
+  state.picker.blockId = null;
+  state.picker.rowIdx = null;
+  state.picker.target = 'row';
+}
+
+function renderPickerList(query) {
+  const list = document.getElementById('pickerList');
+  const q = (query || '').trim().toLowerCase();
+  let filtered = state.catalog;
+  if (q) {
+    filtered = filtered.filter(a =>
+      (a.codice || '').toLowerCase().includes(q) ||
+      (a.descrizione || '').toLowerCase().includes(q)
+    );
+  }
+  // Ordina: match esatto codice in cima, poi codice "starts with", poi resto
+  if (q) {
+    filtered = filtered.slice().sort((a, b) => {
+      const ac = a.codice.toLowerCase(), bc = b.codice.toLowerCase();
+      const aExact = ac === q, bExact = bc === q;
+      if (aExact !== bExact) return aExact ? -1 : 1;
+      const aStart = ac.startsWith(q), bStart = bc.startsWith(q);
+      if (aStart !== bStart) return aStart ? -1 : 1;
+      return ac.localeCompare(bc);
+    });
+  }
+  state.picker.filtered = filtered;
+  state.picker.focusedIdx = 0;
+
+  if (state.catalog.length === 0) {
+    list.innerHTML = `<div class="picker-empty">Catalogo non ancora caricato. Usa <strong>"Inserisci manualmente"</strong> qui sopra, oppure clicca <strong>↻ Catalogo</strong> in toolbar per ripristinarlo.</div>`;
+    return;
+  }
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="picker-empty">Nessun articolo trovato per questa ricerca.</div>';
+    return;
+  }
+
+  const MAX_VISIBLE = 200;
+  const visible = filtered.slice(0, MAX_VISIBLE);
+  list.innerHTML = visible.map((a, i) => `
+    <div class="picker-item ${i === 0 ? 'focused' : ''}" data-idx="${i}">
+      <span class="pi-codice">${escapeHtml(a.codice)}</span>
+      <span class="pi-desc">${escapeHtml(a.descrizione || '—')}</span>
+      <span class="pi-minuti">${fmtNum(a.minuti)} min</span>
+    </div>
+  `).join('') + (filtered.length > MAX_VISIBLE
+      ? `<div class="picker-truncated">+${filtered.length - MAX_VISIBLE} risultati ulteriori. Affina la ricerca.</div>`
+      : '');
+}
+
+function updatePickerFocus() {
+  const items = document.querySelectorAll('.picker-item');
+  items.forEach((item, i) => {
+    const focused = i === state.picker.focusedIdx;
+    item.classList.toggle('focused', focused);
+    if (focused) item.scrollIntoView({ block: 'nearest' });
+  });
+}
+
+async function applyArticleToRow(articleData) {
+  // articleData: { codice, descrizione, minuti }
+  if (!state.picker.blockId) return;
+
+  // Caso TARGET='REQUEST': popolo solo i campi del modal richiesta, non scrivo nel blocco
+  if (state.picker.target === 'request') {
+    state.requestDraft.codice = articleData.codice;
+    state.requestDraft.descrizione = articleData.descrizione;
+    state.requestDraft.minuti = articleData.minuti;
+    syncRequestModalUI();
+    closeArticlePicker();
+    // Focus diretto sui minuti per digitare subito
+    setTimeout(() => document.getElementById('requestMinuti').focus(), 50);
+    return;
+  }
+
+  // Caso TARGET='ROW': aggiungo o modifico una riga del blocco
+  const block = state.blocks.find(b => b.id === state.picker.blockId);
+  if (!block) return;
+
+  if (state.picker.rowIdx != null && block.rows[state.picker.rowIdx]) {
+    // Modalità modifica: sostituisco solo i 3 campi articolo, preservo bollettino/quantita/note/highlight
+    const row = block.rows[state.picker.rowIdx];
+    row.codice = articleData.codice;
+    row.descrizione = articleData.descrizione;
+    row.minuti = articleData.minuti;
+    closeArticlePicker();
+    await persistAndRender();
+    showToast(`Articolo aggiornato: ${articleData.codice}`, 'success');
+  } else {
+    // Modalità aggiunta: push nuova riga
+    block.rows.push({
+      codice: articleData.codice,
+      descrizione: articleData.descrizione,
+      minuti: articleData.minuti,
+      bollettino: '',
+      quantita: 0,
+      note: '',
+      highlight: false
+    });
+    closeArticlePicker();
+    await persistAndRender();
+    showToast(`Aggiunto: ${articleData.codice}`, 'success');
+  }
+}
+
+async function selectArticleByIdx(idx) {
+  const article = state.picker.filtered[idx];
+  if (!article) return;
+  await applyArticleToRow({
+    codice: article.codice,
+    descrizione: article.descrizione,
+    minuti: article.minuti
+  });
+}
+
+async function submitManualEntry() {
+  const codice = document.getElementById('manualCodice').value.trim();
+  const descrizione = document.getElementById('manualDescrizione').value.trim();
+  const minutiRaw = document.getElementById('manualMinuti').value.trim();
+  const minuti = parseNum(minutiRaw);
+
+  if (!codice) {
+    showToast('Il codice è obbligatorio', 'error');
+    document.getElementById('manualCodice').focus();
+    return;
+  }
+  if (minuti <= 0) {
+    showToast('Inserisci un valore di minuti maggiore di zero', 'error');
+    document.getElementById('manualMinuti').focus();
+    return;
+  }
+
+  await applyArticleToRow({
+    codice: capitalizeFirstLetters(codice),
+    descrizione: capitalizeFirstLetters(descrizione),
+    minuti: minuti
+  });
+}
+
+function setupArticlePicker() {
+  const search = document.getElementById('articleSearch');
+  const list = document.getElementById('pickerList');
+  const modal = document.getElementById('articlePickerModal');
+
+  search.addEventListener('input', (e) => renderPickerList(e.target.value));
+
+  search.addEventListener('keydown', (e) => {
+    const max = state.picker.filtered.length - 1;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      state.picker.focusedIdx = Math.min(state.picker.focusedIdx + 1, max);
+      updatePickerFocus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      state.picker.focusedIdx = Math.max(state.picker.focusedIdx - 1, 0);
+      updatePickerFocus();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      selectArticleByIdx(state.picker.focusedIdx);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      closeArticlePicker();
+    }
+  });
+
+  list.addEventListener('click', (e) => {
+    const item = e.target.closest('.picker-item');
+    if (!item) return;
+    selectArticleByIdx(parseInt(item.dataset.idx));
+  });
+
+  modal.addEventListener('click', (e) => {
+    if (e.target.id === 'articlePickerModal') closeArticlePicker();
+  });
+
+  document.getElementById('closeArticlePickerBtn').addEventListener('click', closeArticlePicker);
+
+  // Toggle sezione manual entry
+  document.getElementById('toggleManualEntryBtn').addEventListener('click', () => {
+    const section = document.getElementById('manualEntrySection');
+    const btn = document.getElementById('toggleManualEntryBtn');
+    const isOpen = section.style.display !== 'none';
+    if (isOpen) {
+      section.style.display = 'none';
+      btn.textContent = 'Articolo non in catalogo? Inserisci manualmente';
+    } else {
+      section.style.display = 'block';
+      btn.textContent = 'Nascondi inserimento manuale';
+      setTimeout(() => document.getElementById('manualCodice').focus(), 50);
+    }
+  });
+
+  // Submit manual entry
+  document.getElementById('manualEntrySubmitBtn').addEventListener('click', submitManualEntry);
+
+  // Enter sui campi manual entry = submit
+  ['manualCodice', 'manualDescrizione', 'manualMinuti'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitManualEntry();
+      }
+    });
+  });
+}
+
+// =============================================================================
+// CUSTOM CONFIRM e TOAST (le dialog native sono bloccate nei sandbox iframe)
+// =============================================================================
+function customConfirm(title, message, okText = 'Conferma', danger = false) {
+  return new Promise(resolve => {
+    const modal = document.getElementById('confirmModal');
+    const titleEl = document.getElementById('confirmTitle');
+    const msgEl = document.getElementById('confirmMessage');
+    const okBtn = document.getElementById('confirmOkBtn');
+    const cancelBtn = document.getElementById('confirmCancelBtn');
+
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    okBtn.textContent = okText;
+    okBtn.classList.toggle('danger', !!danger);
+
+    const cleanup = (result) => {
+      modal.classList.remove('show');
+      okBtn.onclick = null;
+      cancelBtn.onclick = null;
+      modal.onclick = null;
+      document.removeEventListener('keydown', onKey);
+      resolve(result);
+    };
+    const onKey = (e) => {
+      if (e.key === 'Escape') cleanup(false);
+      if (e.key === 'Enter') cleanup(true);
+    };
+
+    okBtn.onclick = () => cleanup(true);
+    cancelBtn.onclick = () => cleanup(false);
+    modal.onclick = (e) => { if (e.target === modal) cleanup(false); };
+    document.addEventListener('keydown', onKey);
+
+    modal.classList.add('show');
+    okBtn.focus();
+  });
+}
+
+function showToast(message, type = 'info', duration = 3000) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.animation = 'toastOut 0.25s ease-in forwards';
+    setTimeout(() => toast.remove(), 250);
+  }, duration);
+}
+
+// =============================================================================
+// EVENT LISTENERS — DELEGATION sul container (sopravvive al re-render)
+// =============================================================================
+function setupBlocksDelegation() {
+  const container = document.getElementById('blocksContainer');
+
+  // Pulsanti azione su mousedown (fires PRIMA del blur delle celle editable,
+  // evita la race condition che faceva sparire il bottone prima del click)
+  container.addEventListener('mousedown', (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    e.preventDefault(); // impedisce il blur dell'editable corrente
+
+    const action = btn.dataset.action;
+
+    // Azioni che non richiedono un blocco di contesto (es. dal pulsante empty-state)
+    if (action === 'new-block') {
+      setTimeout(() => handleAction(null, action), 0);
+      return;
+    }
+
+    const blockEl = btn.closest('.block');
+    if (!blockEl) return;
+    const blockId = blockEl.dataset.blockId;
+    const rowIdx = btn.dataset.rowIdx != null ? parseInt(btn.dataset.rowIdx) : null;
+    const requestIdx = btn.dataset.requestIdx != null ? parseInt(btn.dataset.requestIdx) : null;
+
+    // Lascio scattare un eventuale blur per salvare l'edit in corso
+    setTimeout(() => handleAction(blockId, action, rowIdx, requestIdx), 0);
+  });
+
+  // Click sulla cella codice → apre il picker per quella riga (modalità modifica)
+  container.addEventListener('click', (e) => {
+    const td = e.target.closest('td.pickable');
+    if (!td) return;
+    const blockEl = td.closest('.block');
+    const tr = td.closest('tr');
+    if (!blockEl || !tr) return;
+    const blockId = blockEl.dataset.blockId;
+    const rowIdx = parseInt(tr.dataset.rowIdx);
+    openArticlePicker(blockId, rowIdx);
+  });
+
+  // Salvataggio celle editable in capture phase (delegation su blur)
+  container.addEventListener('focusout', (e) => {
+    const td = e.target.closest('td.editable');
+    if (!td) return;
+    const blockEl = td.closest('.block');
+    if (!blockEl) return;
+    const tr = td.closest('tr');
+    if (!tr) return;
+    const blockId = blockEl.dataset.blockId;
+    const rowIdx = parseInt(tr.dataset.rowIdx);
+    const field = td.dataset.field;
+    const newValue = td.textContent.trim();
+    handleEdit(blockId, rowIdx, field, newValue);
+  });
+
+  // Enter su cella editable = conferma e perde focus (non va a capo)
+  container.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.matches('td.editable')) {
+      e.preventDefault();
+      e.target.blur();
+    }
+  });
+}
+
+async function handleAction(blockId, action, rowIdx, requestIdx) {
+  // Azioni globali che non richiedono un blocco
+  if (action === 'new-block') {
+    openNewBlockModal();
+    return;
+  }
+
+  const block = state.blocks.find(b => b.id === blockId);
+  if (!block) return;
+
+  if (action === 'add-row') {
+    // Apro sempre il picker — il catalogo embedded è sempre presente.
+    // Se mai dovesse essere vuoto, il picker ha comunque il pulsante "Inserisci manualmente".
+    openArticlePicker(blockId);
+    return; // il picker gestisce il push della riga
+  }
+  else if (action === 'add-request') {
+    openRequestModal(blockId);
+    return; // il modal gestirà il salvataggio
+  }
+  else if (action === 'delete-request') {
+    if (!block.requests || !block.requests[requestIdx]) return;
+    const desc = block.requests[requestIdx].descrizione || 'senza descrizione';
+    const ok = await customConfirm(
+      'Eliminare richiesta',
+      `Confermi l'eliminazione della richiesta "${desc}"?`,
+      'Elimina', true
+    );
+    if (!ok) return;
+    block.requests.splice(requestIdx, 1);
+    showToast('Richiesta eliminata', 'success');
+  }
+  else if (action === 'delete-row') {
+    const ok = await customConfirm(
+      'Eliminare riga',
+      `Confermi l'eliminazione della riga "${block.rows[rowIdx]?.codice || 'senza codice'}"?`,
+      'Elimina', true
+    );
+    if (!ok) return;
+    block.rows.splice(rowIdx, 1);
+    showToast('Riga eliminata', 'success');
+  }
+  else if (action === 'toggle-highlight') {
+    block.rows[rowIdx].highlight = !block.rows[rowIdx].highlight;
+  }
+  else if (action === 'confirm-block') {
+    const entryFormatted = formatDateLong(parseISO(block.entryDate));
+    const n = block.rows.length;
+    const ok = await customConfirm(
+      'Conferma blocco',
+      `Confermi il blocco di ${entryFormatted}? Contiene ${n} articol${n === 1 ? 'o' : 'i'}. Dopo la conferma puoi sempre modificarlo, ma non sarà più in stato "da confermare".`,
+      'Conferma'
+    );
+    if (!ok) return;
+    block.confirmed = true;
+    showToast('Blocco Confermato', 'success');
+  }
+  else if (action === 'edit-date') {
+    openNewBlockModal(blockId);
+    return; // il modal gestirà il salvataggio
+  }
+  else if (action === 'duplicate-block') {
+    const today = new Date();
+    const newBlock = {
+      id: 'block-' + Date.now(),
+      entryDate: isoDate(today),
+      rows: block.rows.map(r => ({...r, quantita: 0}))
+    };
+    state.blocks.push(newBlock);
+    showToast('Blocco duplicato (quantità azzerate)', 'success');
+  }
+  else if (action === 'delete-block') {
+    const entryFormatted = formatDateLong(parseISO(block.entryDate));
+    const n = block.rows.length;
+    const ok = await customConfirm(
+      'Eliminare blocco',
+      `Eliminare il blocco di ${entryFormatted}? Contiene ${n} articol${n === 1 ? 'o' : 'i'}. L'operazione è irreversibile.`,
+      'Elimina blocco', true
+    );
+    if (!ok) return;
+    state.blocks = state.blocks.filter(b => b.id !== blockId);
+    showToast('Blocco eliminato', 'success');
+  }
+  else {
+    return;
+  }
+
+  await persistAndRender();
+}
+
+function handleEdit(blockId, rowIdx, field, newValue) {
+  const block = state.blocks.find(b => b.id === blockId);
+  if (!block || !block.rows[rowIdx]) return;
+  const row = block.rows[rowIdx];
+
+  if (field === 'minuti' || field === 'quantita') {
+    const numeric = parseNum(newValue);
+    if (row[field] !== numeric) {
+      row[field] = numeric;
+      persistAndRender();
+    }
+  } else {
+    const transformed = capitalizeFirstLetters(newValue);
+    if (row[field] !== transformed) {
+      row[field] = transformed;
+      persistAndRender();
+    }
+  }
+}
+
+async function persistAndRender() {
+  await saveBlocks(state.blocks);
+  render();
+}
+
+// =============================================================================
+// EVENT LISTENERS — TOOLBAR
+// =============================================================================
+function setupToolbar() {
+  const addBlockBtn = document.getElementById('addBlockBtn');
+  if (addBlockBtn) addBlockBtn.addEventListener('click', () => openNewBlockModal());
+  document.getElementById('refreshCatalogBtn').addEventListener('click', handleCatalogClick);
+  document.getElementById('goToTodayBtn').addEventListener('click', () => {
+    const today = new Date();
+    // Cerca un blocco la cui finestra (entrata → uscita) include oggi
+    const todayBlock = state.blocks.find(b => {
+      const entry = parseISO(b.entryDate);
+      const exit = addWorkingDays(entry, GIORNI_BLOCCO);
+      return entry <= today && exit >= today;
+    });
+    if (todayBlock) {
+      const el = document.querySelector(`[data-block-id="${todayBlock.id}"]`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      showToast('Nessun blocco attivo per oggi. Crea un nuovo blocco.', 'info');
+    }
+  });
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.filter = btn.dataset.filter;
+      render();
+    });
+  });
+
+  const searchInput = document.getElementById('searchInput');
+  let searchTimeout;
+  searchInput.addEventListener('input', (e) => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      state.search = e.target.value;
+      render();
+    }, 200);
+  });
+}
+
+// =============================================================================
+// MODAL — NUOVO BLOCCO
+// =============================================================================
+function openNewBlockModal(editBlockId = null) {
+  state.editingBlockId = editBlockId;
+  const modal = document.getElementById('newBlockModal');
+  const input = document.getElementById('entryDateInput');
+  const titleEl = modal.querySelector('h2');
+  const subtitleEl = modal.querySelector('.modal-subtitle');
+  const confirmBtn = document.getElementById('confirmBlockBtn');
+
+  if (editBlockId) {
+    const block = state.blocks.find(b => b.id === editBlockId);
+    if (!block) return;
+    input.value = block.entryDate;
+    titleEl.textContent = 'Modifica Data di Entrata';
+    subtitleEl.textContent = 'Cambia la data di entrata: l\'uscita verrà ricalcolata automaticamente sui due giorni lavorativi successivi.';
+    confirmBtn.textContent = 'Aggiorna data';
+  } else {
+    input.value = isoDate(new Date());
+    titleEl.textContent = 'Nuovo Blocco di Produzione';
+    subtitleEl.textContent = 'Inserisci la data di entrata. L\'uscita verrà calcolata automaticamente dopo 2 giorni lavorativi (escluse domeniche, sabati e festività italiane).';
+    confirmBtn.textContent = 'Crea Blocco';
+  }
+
+  updateExitPreview();
+  modal.classList.add('show');
+  input.focus();
+}
+
+function closeNewBlockModal() {
+  document.getElementById('newBlockModal').classList.remove('show');
+  state.editingBlockId = null;
+}
+
+function updateExitPreview() {
+  const input = document.getElementById('entryDateInput');
+  const preview = document.getElementById('exitPreview');
+  if (!input.value) {
+    preview.textContent = 'Seleziona una data per vedere l\'uscita.';
+    return;
+  }
+  const entry = parseISO(input.value);
+  if (!isWorkingDay(entry)) {
+    preview.innerHTML = `⚠️ <strong>${formatDateLong(entry)}</strong> non è un giorno lavorativo.<br>L'uscita si calcolerà comunque saltando solo i 2 giorni lavorativi successivi.`;
+  } else {
+    const exit = addWorkingDays(entry, GIORNI_BLOCCO);
+    preview.innerHTML = `Entrata: <strong>${formatDateLong(entry)}</strong> alle 06:00<br>Uscita: <strong>${formatDateLong(exit)}</strong> alle 14:00`;
+  }
+}
+
+// =============================================================================
+// REQUEST MODAL — aggiunta di richieste (articolo + minuti) al blocco
+// =============================================================================
+function syncRequestModalUI() {
+  // Aggiorna il campo articolo cliccabile in base allo state.requestDraft
+  const pickerEl = document.getElementById('requestArticlePicker');
+  document.getElementById('requestArticleCodice').textContent = state.requestDraft.codice || '';
+  document.getElementById('requestArticleDesc').textContent = state.requestDraft.descrizione || '';
+  pickerEl.classList.toggle('has-article', !!state.requestDraft.codice);
+  // Il campo Minuti resta sempre libero — l'utente lo compila a mano
+}
+
+function openRequestModal(blockId) {
+  state.requestDraft = { blockId, codice: '', descrizione: '', minuti: 0 };
+  const modal = document.getElementById('requestModal');
+  document.getElementById('requestMinuti').value = '';
+  syncRequestModalUI();
+  modal.classList.add('show');
+  // Sposto il focus sul campo articolo: pronto a essere cliccato/aperto con Enter
+  setTimeout(() => document.getElementById('requestArticlePicker').focus(), 80);
+}
+
+function closeRequestModal() {
+  document.getElementById('requestModal').classList.remove('show');
+  state.requestDraft = { blockId: null, codice: '', descrizione: '', minuti: 0 };
+}
+
+async function saveRequest() {
+  if (!state.requestDraft.blockId) return;
+  const block = state.blocks.find(b => b.id === state.requestDraft.blockId);
+  if (!block) return;
+
+  const codice = state.requestDraft.codice.trim();
+  const descrizione = state.requestDraft.descrizione.trim();
+  const minutiRaw = document.getElementById('requestMinuti').value.trim();
+  const minuti = parseNum(minutiRaw);
+
+  if (!codice) {
+    showToast('Scegli prima un articolo', 'error');
+    document.getElementById('requestArticlePicker').focus();
+    return;
+  }
+  if (minuti <= 0) {
+    showToast('Inserisci un valore di minuti maggiore di zero', 'error');
+    document.getElementById('requestMinuti').focus();
+    return;
+  }
+
+  if (!block.requests) block.requests = [];
+  block.requests.push({
+    codice: codice,
+    descrizione: descrizione,
+    minuti: minuti
+  });
+
+  closeRequestModal();
+  await persistAndRender();
+  showToast('Richiesta aggiunta', 'success');
+}
+
+function setupRequestModal() {
+  const modal = document.getElementById('requestModal');
+  document.getElementById('saveRequestBtn').addEventListener('click', saveRequest);
+  document.getElementById('cancelRequestBtn').addEventListener('click', closeRequestModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target.id === 'requestModal') closeRequestModal();
+  });
+
+  // Click sul campo articolo → apre il picker in modalità "request"
+  const pickerField = document.getElementById('requestArticlePicker');
+  const openFromField = () => {
+    if (state.requestDraft.blockId) {
+      openArticlePicker(state.requestDraft.blockId, null, 'request');
+    }
+  };
+  pickerField.addEventListener('click', openFromField);
+  pickerField.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openFromField();
+    }
+  });
+
+  // Enter su minuti → submit; Escape → annulla
+  document.getElementById('requestMinuti').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      saveRequest();
+    } else if (e.key === 'Escape') {
+      closeRequestModal();
+    }
+  });
+}
+
+function setupModal() {
+  document.getElementById('entryDateInput').addEventListener('change', updateExitPreview);
+  document.getElementById('cancelBlockBtn').addEventListener('click', closeNewBlockModal);
+  document.getElementById('newBlockModal').addEventListener('click', (e) => {
+    if (e.target.id === 'newBlockModal') closeNewBlockModal();
+  });
+
+  document.getElementById('confirmBlockBtn').addEventListener('click', async () => {
+    const input = document.getElementById('entryDateInput');
+    if (!input.value) { showToast('Seleziona una data di entrata.', 'error'); return; }
+
+    // Modalità EDIT: aggiorna data di un blocco esistente
+    if (state.editingBlockId) {
+      const block = state.blocks.find(b => b.id === state.editingBlockId);
+      if (!block) { closeNewBlockModal(); return; }
+      block.entryDate = input.value;
+      closeNewBlockModal();
+      await persistAndRender();
+      showToast('Data di entrata aggiornata', 'success');
+      return;
+    }
+
+    // Modalità CREATE: nuovo blocco da confermare
+    const newBlock = {
+      id: 'block-' + Date.now(),
+      entryDate: input.value,
+      confirmed: false,
+      rows: []
+    };
+    state.blocks.push(newBlock);
+    closeNewBlockModal();
+    await persistAndRender();
+    showToast('Blocco creato — da confermare', 'success');
+    setTimeout(() => {
+      const el = document.querySelector(`[data-block-id="${newBlock.id}"]`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  });
+}
+
+// =============================================================================
+// INIT
+// =============================================================================
+async function init() {
+  try {
+    state.blocks = await loadBlocks();
+    state.catalog = await loadCatalogFromStorage();
+
+    // Se lo storage è vuoto, popolo subito col catalogo embedded
+    // (311 articoli dal foglio "Registro Tempi Ciclo DG")
+    if (!state.catalog || state.catalog.length === 0) {
+      state.catalog = EMBEDDED_CATALOG.slice();
+      try { await saveCatalogToStorage(state.catalog); } catch(e) { console.warn('Could not persist embedded catalog:', e); }
+    }
+
+    // Render PRIMA dei setup: se un setup* fallisce, almeno l'UI è visibile
+    render();
+
+    setupToolbar();
+    setupModal();
+    setupBlocksDelegation();
+    setupArticlePicker();
+    setupCatalogModal();
+    setupRequestModal();
+  } catch (e) {
+    console.error('Errore in init():', e);
+    const container = document.getElementById('blocksContainer');
+    if (container) {
+      container.innerHTML = `
+        <div style="padding: 40px; text-align: center; color: var(--today-rule);">
+          <h2 style="margin-bottom: 12px;">Errore di caricamento</h2>
+          <p style="margin-bottom: 8px;">${e && e.message ? e.message : String(e)}</p>
+          <p style="font-size: 12px; color: var(--ink-muted);">Apri la console del browser (F12) per maggiori dettagli.</p>
+        </div>`;
+    }
+  }
+}
+
+init();
+</script>
+</body>
+</html>
