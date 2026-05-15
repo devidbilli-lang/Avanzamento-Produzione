@@ -1630,16 +1630,13 @@ button.link-btn:hover {
 <div class="modal-backdrop" id="syncSettingsModal">
   <div class="modal request-modal">
     <h2>Sincronizzazione Google Sheets</h2>
-    <p class="modal-subtitle">Configura l'URL dell'Apps Script Web App. La sync è automatica ogni 5 minuti quando abilitata, e ad ogni modifica dei blocchi. La chiave di sync è opzionale in questa versione.</p>
+    <p class="modal-subtitle">L'app parla con un Worker Cloudflare che fa proxy verso Apps Script. URL e secret di Apps Script vivono solo nel Worker, mai nel browser. La sync è automatica ogni 5 minuti quando abilitata, e ad ogni modifica dei blocchi.</p>
     <div class="request-form">
       <div class="field">
-        <span class="field-label">URL Apps Script Web App</span>
-        <input type="text" id="syncWorkerUrl" placeholder="https://script.google.com/macros/s/AKfycb.../exec">
+        <span class="field-label">URL Worker Cloudflare</span>
+        <input type="text" id="syncWorkerUrl" placeholder="https://preparazione-dg-sync.tuoaccount.workers.dev">
       </div>
-      <div class="field">
-        <span class="field-label">Chiave di Sync (opzionale)</span>
-        <input type="password" id="syncSecret" placeholder="Lascia vuoto se non hai impostato la SYNC_SECRET nel codice Apps Script">
-      </div>
+      <input type="hidden" id="syncSecret" value="">
       <div class="field">
         <span class="field-label">Sincronizzazione automatica</span>
         <select id="syncEnabled" style="padding: 10px 12px; border: 1px solid var(--rule); background: var(--paper); font-family: inherit; font-weight: 700; font-size: 14px;">
@@ -3109,10 +3106,11 @@ function setupModal() {
 // SYNC GOOGLE SHEETS via Apps Script
 // =============================================================================
 
-// URL Apps Script di default: viene usato automaticamente al primo avvio
+// URL Worker Cloudflare di default: viene usato automaticamente al primo avvio
 // se l'utente non ha ancora configurato un URL nel modal Sync.
-// Per cambiare foglio in futuro: sovrascrivi qui o cambialo nel modal Sync (che ha precedenza).
-const SYNC_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbyUvJGmm3CMztLFQkVcyTES17WqCRIDHBYi7Q4xRXIZH0YncFqcPamdjohTNfJ42FyHgQ/exec';
+// L'app NON conosce più l'URL Apps Script: quello vive solo come secret del Worker.
+// SOSTITUISCI questo URL con quello del tuo Worker Cloudflare dopo averlo creato.
+const SYNC_URL_DEFAULT = 'https://avanzamento-produzione.devid-billi.workers.dev/';
 const SYNC_ENABLED_DEFAULT = true; // sync automatica abilitata di default
 
 const SYNC_CONFIG_KEY = 'preparazione_dg_sync_config';
@@ -3158,16 +3156,13 @@ async function syncNow(silent = false) {
   syncState.status = 'syncing';
 
   try {
-    // Apps Script accetta solo richieste "simple" (no preflight CORS):
-    // - method POST
-    // - Content-Type text/plain (anche se il body è JSON)
-    // - Niente header custom: la secret viaggia DENTRO il body (se configurata)
-    const body = { blocks: state.blocks };
-    if (cfg.secret) body.secret = cfg.secret;
-    const res = await fetch(cfg.workerUrl, {
+    // L'app parla SOLO col Worker. Il Worker conosce URL Apps Script + secret e
+    // fa proxy per noi. Niente segreti nel browser.
+    const baseUrl = cfg.workerUrl.replace(/\/$/, '');
+    const res = await fetch(baseUrl + '/sync', {
       method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(body)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blocks: state.blocks })
     });
 
     if (!res.ok) {
@@ -3175,7 +3170,7 @@ async function syncNow(silent = false) {
       throw new Error(`HTTP ${res.status}: ${errText}`);
     }
     const data = await res.json();
-    if (!data.ok) throw new Error(data.error || 'Apps Script ha risposto con errore');
+    if (!data.ok) throw new Error(data.error || 'Worker ha risposto con errore');
 
     syncState.lastSyncAt = new Date();
     syncState.lastError = null;
@@ -3258,17 +3253,17 @@ function setupSyncSettingsModal() {
 
   document.getElementById('syncTestBtn').addEventListener('click', async () => {
     const url = document.getElementById('syncWorkerUrl').value.trim();
-    if (!url) { showToast('Inserisci prima un URL Apps Script', 'error'); return; }
+    if (!url) { showToast('Inserisci prima un URL Worker', 'error'); return; }
     try {
-      const res = await fetch(url);
+      const res = await fetch(url.replace(/\/$/, '') + '/health');
       const data = await res.json();
       if (data.ok) {
-        showToast(`Apps Script raggiungibile: ${data.time}`, 'success');
+        showToast(`Worker raggiungibile: ${data.time}`, 'success');
       } else {
-        showToast('Apps Script raggiunto ma risposta inattesa', 'error');
+        showToast('Worker raggiunto ma risposta inattesa', 'error');
       }
     } catch (e) {
-      showToast('Apps Script non raggiungibile: ' + e.message, 'error', 5000);
+      showToast('Worker non raggiungibile: ' + e.message, 'error', 5000);
     }
   });
 }
