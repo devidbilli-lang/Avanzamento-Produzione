@@ -3278,6 +3278,14 @@ function setupModal() {
     };
     state.blocks.push(newBlock);
     closeNewBlockModal();
+    // Azzero la ricerca: un blocco nuovo è vuoto e verrebbe nascosto da un filtro
+    // di ricerca attivo (la ricerca filtra sulle righe). Così è sempre visibile.
+    if (state.search) {
+      state.search = '';
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) searchInput.value = '';
+    }
+    // Se ero sul filtro che potrebbe nasconderlo, mostro comunque (month include oggi)
     await persistAndRender();
     showToast('Blocco creato — da confermare', 'success');
     setTimeout(() => {
