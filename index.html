@@ -872,6 +872,90 @@ button.icon-btn.row-action.danger:hover {
   font-size: 12px;
 }
 
+/* === SEZIONE CODICI KIT (accento blu) === */
+.kit-section {
+  padding: 12px 16px;
+  background: rgba(58, 120, 194, 0.06);
+  border-top: 1px solid rgba(58, 120, 194, 0.2);
+}
+
+.kit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.kit-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.12em;
+  color: #3a78c2;
+}
+
+.kit-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #2c5f9e;
+  letter-spacing: 0.05em;
+}
+
+.kit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.kit-item {
+  display: grid;
+  grid-template-columns: 140px 1fr 130px 48px;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--paper);
+  border: 1px solid rgba(58, 120, 194, 0.25);
+  border-left: 3px solid #3a78c2;
+}
+
+.kit-item .kit-sku {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--ink);
+  letter-spacing: 0.04em;
+}
+
+.kit-item .kit-codice {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  color: #3a78c2;
+  letter-spacing: 0.04em;
+}
+
+.kit-item .kit-perborsa {
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  color: #2c5f9e;
+  text-align: right;
+}
+
+.kit-item .kit-qta {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--ink-muted);
+  text-align: right;
+}
+
+.kit-empty {
+  padding: 8px 12px;
+  color: var(--ink-muted);
+  font-size: 12px;
+}
+
 /* === MODAL NUOVA RICHIESTA === */
 .modal.request-modal {
   max-width: 480px;
@@ -1944,9 +2028,71 @@ let state = {
   search: '',
   editingBlockId: null,
   catalog: [],
+  kitMap: {},
   picker: { blockId: null, rowIdx: null, target: 'row', filtered: [], focusedIdx: 0 },
   requestDraft: { blockId: null, codice: '', descrizione: '', minuti: 0 }
 };
+
+// =============================================================================
+// MAPPA KIT (codice SKU → { codiceC, kitE }) dal foglio Kit per Borsa
+// =============================================================================
+const KIT_STORAGE_KEY = 'preparazione_dg_kitmap_v1';
+
+// Cerca il kit per un codice articolo: prima match esatto, poi primo token
+function lookupKit(codice) {
+  const map = state.kitMap || {};
+  if (!codice) return null;
+  const norm = String(codice).trim().toUpperCase();
+  if (map[norm]) return map[norm];
+  const firstToken = norm.split(/\s+/)[0];
+  if (firstToken && map[firstToken]) return map[firstToken];
+  return null;
+}
+
+async function loadKitMapFromStorage() {
+  try {
+    const r = await window.storage.get(KIT_STORAGE_KEY);
+    if (r && r.value) return JSON.parse(r.value);
+  } catch (e) { console.warn('loadKitMap:', e); }
+  return {};
+}
+
+async function saveKitMapToStorage(map) {
+  try { await window.storage.set(KIT_STORAGE_KEY, JSON.stringify(map)); }
+  catch (e) { console.warn('saveKitMap:', e); }
+}
+
+// Scarica la mappa kit dall'endpoint sync (Apps Script o Worker) e la mette in cache
+async function fetchKitMap(silent = true) {
+  const cfg = await loadSyncConfig();
+  if (!cfg.enabled || !cfg.workerUrl) return null;
+  try {
+    const baseUrl = cfg.workerUrl.replace(/\/$/, '');
+    const isAppsScript = /script\.google\.com/.test(baseUrl);
+    let url;
+    if (isAppsScript) {
+      const sep = baseUrl.indexOf('?') >= 0 ? '&' : '?';
+      url = baseUrl + sep + 'action=kits' + (cfg.secret ? '&secret=' + encodeURIComponent(cfg.secret) : '');
+    } else {
+      url = baseUrl + '/kits';
+    }
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data && data.ok && data.kits) {
+      state.kitMap = data.kits;
+      await saveKitMapToStorage(data.kits);
+      if (!silent) showToast(`Codici kit aggiornati: ${data.count || Object.keys(data.kits).length}`, 'success');
+      if (typeof render === 'function') render();
+      return data.kits;
+    } else {
+      if (!silent) showToast('Kit: risposta inattesa dall\'endpoint', 'error');
+    }
+  } catch (e) {
+    console.warn('fetchKitMap error:', e);
+    if (!silent) showToast('Kit non aggiornati: ' + e.message, 'error', 5000);
+  }
+  return null;
+}
 
 // =============================================================================
 // RENDERING
@@ -2020,6 +2166,24 @@ function renderBlock(block) {
     `;
   }).join('');
 
+  // Righe kit: solo articoli con quantità > 0 che hanno un codice nel foglio kit
+  const kitRows = block.rows
+    .filter(r => parseNum(r.quantita) > 0)
+    .map(r => {
+      const kit = lookupKit(r.codice);
+      return kit ? { sku: r.codice, codiceC: kit.codiceC, kitE: kit.kitE, qta: parseNum(r.quantita) } : null;
+    })
+    .filter(Boolean);
+  const kitHtml = kitRows.length === 0
+    ? '<div class="kit-empty">Nessun codice kit. Compaiono qui gli articoli con quantità maggiore di 0 presenti nel foglio kit.</div>'
+    : kitRows.map(k => `
+        <div class="kit-item">
+          <span class="kit-sku">${escapeHtml(k.sku)}</span>
+          <span class="kit-codice">${escapeHtml(k.codiceC) || '<em>—</em>'}</span>
+          <span class="kit-perborsa">${escapeHtml(k.kitE)} kit/borsa</span>
+          <span class="kit-qta">×${fmtInt(k.qta)}</span>
+        </div>`).join('');
+
   return `
     <section class="block ${confirmed ? '' : 'unconfirmed'}" data-block-id="${block.id}">
       <div class="block-side entry">
@@ -2061,6 +2225,16 @@ function renderBlock(block) {
           </thead>
           <tbody>${rowsHtml}</tbody>
         </table>
+
+        <div class="kit-section">
+          <div class="kit-header">
+            <span class="kit-title">Codici Kit</span>
+            <span class="kit-count">${kitRows.length === 0
+              ? 'Nessun codice'
+              : `${kitRows.length} ${kitRows.length === 1 ? 'codice' : 'codici'}`}</span>
+          </div>
+          <div class="kit-list">${kitHtml}</div>
+        </div>
 
         <div class="requests-section">
           <div class="requests-header">
@@ -2284,6 +2458,8 @@ async function handleCatalogClick() {
     await saveCatalogToStorage(state.catalog);
     btn.textContent = '✓ ' + state.catalog.length + ' articoli';
     showToast(`Catalogo ricaricato: ${state.catalog.length} articoli dal foglio LV`, 'success', 4000);
+    // Aggiorno anche i codici kit dal foglio
+    fetchKitMap(false);
     setTimeout(() => {
       btn.textContent = originalText;
       btn.disabled = false;
@@ -3123,7 +3299,7 @@ function setupModal() {
 //   - Worker Cloudflare: https://nome.tuoaccount.workers.dev
 // L'app rileva automaticamente quale dei due è e usa il protocollo giusto.
 // Cambia qui (o nel modal Sync) quando passi da Apps Script al Worker.
-const SYNC_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwnkM_th3GSaIfPIa8XOfILITP_Tn-rkEpXLPeghWSjFbxCPEtInnR3ftX16yEYuhGu5g/exec';
+const SYNC_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycby-bxdfPMBxoLbJOoNnYj42sKZFfyrPBGa-O9PxC-4cVWHBZ0cJCIh_COK_48_4GG4Ppw/exec';
 const SYNC_ENABLED_DEFAULT = true; // sync automatica abilitata di default
 
 const SYNC_CONFIG_KEY = 'preparazione_dg_sync_config';
@@ -3303,6 +3479,7 @@ async function init() {
   try {
     state.blocks = await loadBlocks();
     state.catalog = await loadCatalogFromStorage();
+    state.kitMap = await loadKitMapFromStorage();
 
     // Se lo storage è vuoto, popolo subito col catalogo embedded
     // (311 articoli dal foglio "Registro Tempi Ciclo DG")
@@ -3322,6 +3499,8 @@ async function init() {
     setupRequestModal();
     setupSyncSettingsModal();
     await initSync();
+    // Aggiorno i codici kit dal foglio in background (ridisegna da solo quando arriva)
+    fetchKitMap(true);
   } catch (e) {
     console.error('Errore in init():', e);
     const container = document.getElementById('blocksContainer');
