@@ -934,6 +934,26 @@ button.icon-btn.row-action.danger:hover {
   letter-spacing: 0.04em;
 }
 
+.kit-item .kit-select {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  color: #3a78c2;
+  letter-spacing: 0.04em;
+  background: #fff;
+  border: 1px solid rgba(58, 120, 194, 0.45);
+  border-radius: 8px;
+  padding: 4px 8px;
+  cursor: pointer;
+  max-width: 100%;
+}
+
+.kit-item .kit-select:focus {
+  outline: none;
+  border-color: #3a78c2;
+  box-shadow: 0 0 0 2px rgba(58, 120, 194, 0.18);
+}
+
 .kit-item .kit-perborsa {
   font-family: 'Manrope', sans-serif;
   font-weight: 700;
@@ -2038,15 +2058,16 @@ let state = {
 // =============================================================================
 const KIT_STORAGE_KEY = 'preparazione_dg_kitmap_v1';
 
-// Cerca il kit per un codice articolo: prima match esatto, poi primo token
+// Restituisce l'array di kit per un codice articolo: match esatto, poi primo token
+// Formato: [ { codiceC, kitE }, ... ]  (un articolo può avere più codici)
 function lookupKit(codice) {
   const map = state.kitMap || {};
-  if (!codice) return null;
+  if (!codice) return [];
   const norm = String(codice).trim().toUpperCase();
-  if (map[norm]) return map[norm];
+  if (Array.isArray(map[norm])) return map[norm];
   const firstToken = norm.split(/\s+/)[0];
-  if (firstToken && map[firstToken]) return map[firstToken];
-  return null;
+  if (firstToken && Array.isArray(map[firstToken])) return map[firstToken];
+  return [];
 }
 
 async function loadKitMapFromStorage() {
@@ -2166,23 +2187,38 @@ function renderBlock(block) {
     `;
   }).join('');
 
-  // Righe kit: solo articoli con quantità > 0 che hanno un codice nel foglio kit
+  // Righe kit: solo articoli con quantità > 0 che hanno almeno un codice nel foglio kit
   const kitRows = block.rows
-    .filter(r => parseNum(r.quantita) > 0)
-    .map(r => {
-      const kit = lookupKit(r.codice);
-      return kit ? { sku: r.codice, codiceC: kit.codiceC, kitE: kit.kitE, qta: parseNum(r.quantita) } : null;
+    .map((r, idx) => ({ r, idx }))
+    .filter(({ r }) => parseNum(r.quantita) > 0)
+    .map(({ r, idx }) => {
+      const arr = lookupKit(r.codice);
+      if (!arr || arr.length === 0) return null;
+      // codice scelto: r.kitCodice se ancora valido, altrimenti il primo della lista
+      const chosen = (r.kitCodice && arr.some(x => x.codiceC === r.kitCodice))
+        ? r.kitCodice : arr[0].codiceC;
+      const match = arr.find(x => x.codiceC === chosen) || arr[0];
+      return { idx, sku: r.codice, arr, chosen, kitE: match.kitE, qta: parseNum(r.quantita) };
     })
     .filter(Boolean);
+
   const kitHtml = kitRows.length === 0
     ? '<div class="kit-empty">Nessun codice kit. Compaiono qui gli articoli con quantità maggiore di 0 presenti nel foglio kit.</div>'
-    : kitRows.map(k => `
+    : kitRows.map(k => {
+        // Se l'articolo ha più codici → tendina; se ne ha uno solo → testo
+        const codiceCell = k.arr.length > 1
+          ? `<select class="kit-select" data-row-idx="${k.idx}">
+               ${k.arr.map(opt => `<option value="${escapeHtml(opt.codiceC)}"${opt.codiceC === k.chosen ? ' selected' : ''}>${escapeHtml(opt.codiceC)}</option>`).join('')}
+             </select>`
+          : `<span class="kit-codice">${escapeHtml(k.chosen)}</span>`;
+        return `
         <div class="kit-item">
           <span class="kit-sku">${escapeHtml(k.sku)}</span>
-          <span class="kit-codice">${escapeHtml(k.codiceC) || '<em>—</em>'}</span>
+          ${codiceCell}
           <span class="kit-perborsa">${escapeHtml(k.kitE)} kit/borsa</span>
           <span class="kit-qta">×${fmtInt(k.qta)}</span>
-        </div>`).join('');
+        </div>`;
+      }).join('');
 
   return `
     <section class="block ${confirmed ? '' : 'unconfirmed'}" data-block-id="${block.id}">
@@ -2936,6 +2972,20 @@ function setupBlocksDelegation() {
       e.target.blur();
     }
   });
+
+  // Cambio del codice kit dalla tendina → salva la scelta nella riga
+  container.addEventListener('change', (e) => {
+    const sel = e.target.closest('select.kit-select');
+    if (!sel) return;
+    const blockEl = sel.closest('.block');
+    if (!blockEl) return;
+    const blockId = blockEl.dataset.blockId;
+    const rowIdx = parseInt(sel.dataset.rowIdx);
+    const block = state.blocks.find(b => b.id === blockId);
+    if (!block || !block.rows[rowIdx]) return;
+    block.rows[rowIdx].kitCodice = sel.value;
+    persistAndRender();
+  });
 }
 
 async function handleAction(blockId, action, rowIdx, requestIdx) {
@@ -3307,7 +3357,7 @@ function setupModal() {
 //   - Worker Cloudflare: https://nome.tuoaccount.workers.dev
 // L'app rileva automaticamente quale dei due è e usa il protocollo giusto.
 // Cambia qui (o nel modal Sync) quando passi da Apps Script al Worker.
-const SYNC_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycby-bxdfPMBxoLbJOoNnYj42sKZFfyrPBGa-O9PxC-4cVWHBZ0cJCIh_COK_48_4GG4Ppw/exec';
+const SYNC_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbxq-Wzm-X3m2IbMOdvJgTnyrOv_OV1_qjWJ_3Swq50-yoU3JaOOSPS8s2CMU5ihf6p9xw/exec';
 const SYNC_ENABLED_DEFAULT = true; // sync automatica abilitata di default
 
 const SYNC_CONFIG_KEY = 'preparazione_dg_sync_config';
