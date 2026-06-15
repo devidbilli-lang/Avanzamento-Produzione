@@ -2214,9 +2214,9 @@ function renderBlock(block) {
         // Se l'articolo ha più codici → tendina; se ne ha uno solo → testo
         const codiceCell = k.arr.length > 1
           ? `<select class="kit-select" data-row-idx="${k.idx}">
-               ${k.arr.map(opt => `<option value="${escapeHtml(opt.codiceC)}"${opt.codiceC === k.chosen ? ' selected' : ''}>${escapeHtml(opt.codiceC)}</option>`).join('')}
+               ${k.arr.map(opt => `<option value="${escapeHtml(opt.codiceC)}"${opt.codiceC === k.chosen ? ' selected' : ''}>${escapeHtml(opt.codiceC)}${opt.desc ? ' — ' + escapeHtml(opt.desc) : ''}</option>`).join('')}
              </select>`
-          : `<span class="kit-codice">${escapeHtml(k.chosen)}</span>`;
+          : `<span class="kit-codice">${escapeHtml(k.chosen)}${(k.arr[0] && k.arr[0].desc) ? ' — ' + escapeHtml(k.arr[0].desc) : ''}</span>`;
         return `
         <div class="kit-item">
           <span class="kit-sku">${escapeHtml(k.sku)}</span>
@@ -3363,7 +3363,7 @@ function setupModal() {
 //   - Worker Cloudflare: https://nome.tuoaccount.workers.dev
 // L'app rileva automaticamente quale dei due è e usa il protocollo giusto.
 // Cambia qui (o nel modal Sync) quando passi da Apps Script al Worker.
-const SYNC_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbxq-Wzm-X3m2IbMOdvJgTnyrOv_OV1_qjWJ_3Swq50-yoU3JaOOSPS8s2CMU5ihf6p9xw/exec';
+const SYNC_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwWa54Cqkjfr6zbT0BQQ3OHCovuOCFnkUQAndjQVN_oVc8xWnNSGHhORtuNTGGJiN6Xlg/exec';
 const SYNC_ENABLED_DEFAULT = true; // sync automatica abilitata di default
 
 const SYNC_CONFIG_KEY = 'preparazione_dg_sync_config';
