@@ -1748,6 +1748,7 @@ button.link-btn:hover {
       <div class="field">
         <span class="field-label">URL Endpoint Sync</span>
         <input type="text" id="syncWorkerUrl" placeholder="https://script.google.com/macros/.../exec  oppure  https://nome.workers.dev">
+        <button type="button" id="syncUseDefaultBtn" style="margin-top:6px; align-self:flex-start; padding:6px 12px; border:1px solid var(--rule); background:var(--paper-2); font-family:inherit; font-weight:700; font-size:12px; border-radius:8px; cursor:pointer;">↻ Usa URL predefinito (dal codice)</button>
       </div>
       <div class="field">
         <span class="field-label">Chiave di Sync (opzionale)</span>
@@ -3505,6 +3506,12 @@ function setupSyncSettingsModal() {
   });
 
   document.getElementById('syncCancelBtn').addEventListener('click', () => modal.classList.remove('show'));
+
+  // Riempie il campo URL con l'URL predefinito hardcoded nel codice (SYNC_URL_DEFAULT)
+  document.getElementById('syncUseDefaultBtn').addEventListener('click', () => {
+    document.getElementById('syncWorkerUrl').value = SYNC_URL_DEFAULT;
+    showToast('URL impostato al predefinito. Premi Salva per confermare.', 'info', 3500);
+  });
 
   document.getElementById('syncSaveBtn').addEventListener('click', async () => {
     const cfg = {
