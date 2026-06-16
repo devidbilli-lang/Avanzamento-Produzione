@@ -770,6 +770,124 @@ button.icon-btn.row-action.danger:hover {
 .col-note     { width: 12%; }
 .col-actions  { width: 5%; }
 
+/* === TABELLA UNICA KIT === */
+.col-artcode   { width: 9%; }
+.col-artdesc   { width: 19%; }
+.col-code      { width: 11%; }
+.col-codedesc  { width: 19%; }
+.col-kitborsa  { width: 6%; }
+.col-codemin   { width: 7%; }
+.col-qta       { width: 8%; }
+.col-fte       { width: 8%; }
+
+.cell-artcode {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-size: 12px;
+}
+.cell-artdesc { text-align: center; font-size: 12px; }
+.cell-code { text-align: center; }
+.cell-codedesc { text-align: left; font-family: 'Manrope', sans-serif; font-weight: 500; font-size: 12px; }
+.cell-kitborsa { text-align: center; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #2c5f9e; }
+.cell-codemin { text-align: center; font-family: 'JetBrains Mono', monospace; }
+.cell-qta { text-align: center; }
+.cell-fte {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  color: #1a8a5a;
+}
+
+/* Tendina codice dentro la cella */
+.block-table-kit .code-select {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 12px;
+  color: #3a78c2;
+  background: #fff;
+  border: 1px solid rgba(58, 120, 194, 0.45);
+  border-radius: 6px;
+  padding: 3px 6px;
+  cursor: pointer;
+  max-width: 100%;
+}
+.block-table-kit .code-select:focus {
+  outline: none;
+  border-color: #3a78c2;
+  box-shadow: 0 0 0 2px rgba(58, 120, 194, 0.18);
+}
+
+/* Input quantità dentro la cella */
+.block-table-kit .kit-qta-input {
+  width: 70px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  text-align: center;
+  background: #fff;
+  border: 1px solid rgba(58, 120, 194, 0.45);
+  border-radius: 6px;
+  padding: 3px 4px;
+}
+.block-table-kit .kit-qta-input:focus {
+  outline: none;
+  border-color: #3a78c2;
+  box-shadow: 0 0 0 2px rgba(58, 120, 194, 0.18);
+}
+
+/* Riga "aggiungi codice" */
+.block-table-kit tr.addcode-row td {
+  background: rgba(58, 120, 194, 0.05);
+}
+.block-table-kit tr.addcode-row td.cell-week {
+  background-color: #fff176 !important;
+}
+.addcode-cell {
+  display: table-cell;
+  text-align: left;
+  vertical-align: middle;
+}
+.addcode-cell .kit-add-select {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 12px;
+  color: #3a78c2;
+  background: #fff;
+  border: 1px solid rgba(58, 120, 194, 0.45);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  max-width: 60%;
+}
+.addcode-cell .kit-add-btn {
+  margin-left: 8px;
+  white-space: nowrap;
+  background: rgba(58, 120, 194, 0.12) !important;
+  color: #2c5f9e !important;
+  border: 1px solid rgba(58, 120, 194, 0.4) !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  padding: 4px 10px !important;
+}
+.addcode-cell .kit-add-btn:hover {
+  background: #3a78c2 !important;
+  color: #fff !important;
+}
+.addcode-cell .placeholder {
+  color: var(--ink-muted);
+  font-style: italic;
+  font-size: 12px;
+}
+.table-empty {
+  text-align: center;
+  color: var(--ink-muted);
+  font-style: italic;
+  padding: 18px !important;
+}
+
 /* === BLOCK FOOTER === */
 .block-footer {
   padding: 12px 16px;
@@ -2266,70 +2384,60 @@ function renderBlock(block) {
   const totals = calcBlockTotals(block);
   const week = getWeekNumber(entry);
 
-  const rowsHtml = block.rows.map((r, idx) => {
-    const unita = calcRowUnita(r);
-    return `
-      <tr data-row-idx="${idx}">
-        <td class="cell-week">${week}</td>
-        <td class="cell-unita">${fmtNum(unita)}</td>
-        <td class="cell-codice pickable" data-field="codice" data-row-idx="${idx}" title="Clicca per cambiare articolo">${escapeHtml(r.codice) || '<span class="placeholder">— scegli articolo —</span>'}</td>
-        <td class="cell-descrizione locked" data-field="descrizione">${escapeHtml(r.descrizione)}</td>
-        <td class="cell-minuti locked" data-field="minuti">${fmtNum(r.minuti)}</td>
-        <td class="cell-bollettino editable ${r.highlight ? 'highlight' : ''}" data-field="bollettino" contenteditable="true">${escapeHtml(r.bollettino)}</td>
-        <td class="cell-note editable" data-field="note" contenteditable="true">${escapeHtml(r.note)}</td>
-        <td class="cell-actions">
-          <button class="icon-btn row-action" data-action="toggle-highlight" data-row-idx="${idx}" title="Evidenzia riga">★</button>
-          <button class="icon-btn row-action danger" data-action="delete-row" data-row-idx="${idx}" title="Elimina riga">✕</button>
-        </td>
-      </tr>
-    `;
-  }).join('');
-
-  // Sezione Codici Kit: per ogni articolo, la lista dei codici aggiunti (con quantità)
-  // + un menu per aggiungerne altri. FTE per codice = minuti × quantità × kit/borsa ÷ 480.
-  let kitArticlesCount = 0;
-  const kitSectionHtml = block.rows.map((r, rowIdx) => {
-    if (!r.codice) return '';
+  // ===== TABELLA UNICA: una riga per ogni codice kit (info articolo ripetute) =====
+  // Per ogni articolo: le righe dei suoi codici + una riga "aggiungi codice".
+  const bodyRows = block.rows.map((r, rowIdx) => {
     const available = lookupKit(r.codice); // [{codiceC, kitE, desc, minuti}]
     const items = r.kitItems || [];
-    if (available.length === 0 && items.length === 0) return '';
-    kitArticlesCount++;
 
-    const itemsHtml = items.length === 0
-      ? '<div class="kit-empty">Nessun codice aggiunto. Usa il menu qui sotto.</div>'
-      : items.map((it, itIdx) => {
-          const info = available.find(a => a.codiceC === it.codiceC) || { kitE: '', desc: '', minuti: '' };
-          const kitE = parseNum(info.kitE);
-          const min = parseNum(info.minuti);
-          const q = parseNum(it.quantita);
-          const fte = (min * q * kitE) / FTE_DIVISORE;
-          return `
-            <div class="kit-item">
-              <span class="kit-codice">${escapeHtml(it.codiceC)}${info.desc ? ' — ' + escapeHtml(info.desc) : ''}</span>
-              <span class="kit-perborsa">${escapeHtml(String(info.kitE || ''))} kit/borsa</span>
-              <span class="kit-min">${fmtNum(min)} min</span>
-              <span class="kit-qta-wrap">Qtà <input type="text" inputmode="numeric" class="kit-qta-input" data-row-idx="${rowIdx}" data-item-idx="${itIdx}" value="${fmtInt(q)}"></span>
-              <span class="kit-fte">${fmtNum(fte)} FTE</span>
-              <button class="icon-btn row-action danger" data-action="delete-kit" data-row-idx="${rowIdx}" data-item-idx="${itIdx}" title="Rimuovi codice">✕</button>
-            </div>`;
-        }).join('');
+    const codeRows = items.map((it, itIdx) => {
+      const info = available.find(a => a.codiceC === it.codiceC) || { kitE: '', desc: '', minuti: '' };
+      const kitE = parseNum(info.kitE);
+      const min = parseNum(info.minuti);
+      const q = parseNum(it.quantita);
+      const fte = (min * q * kitE) / FTE_DIVISORE;
+      const codeCell = available.length > 0
+        ? `<select class="code-select" data-row-idx="${rowIdx}" data-item-idx="${itIdx}">
+             ${available.map(a => `<option value="${escapeHtml(a.codiceC)}"${a.codiceC === it.codiceC ? ' selected' : ''}>${escapeHtml(a.codiceC)}</option>`).join('')}
+           </select>`
+        : escapeHtml(it.codiceC);
+      return `
+        <tr class="code-row" data-row-idx="${rowIdx}" data-item-idx="${itIdx}">
+          <td class="cell-week">${week}</td>
+          <td class="cell-artcode pickable" data-row-idx="${rowIdx}" title="Clicca per cambiare articolo">${escapeHtml(r.codice)}</td>
+          <td class="cell-artdesc">${escapeHtml(r.descrizione)}</td>
+          <td class="cell-code">${codeCell}</td>
+          <td class="cell-codedesc">${escapeHtml(info.desc || '')}</td>
+          <td class="cell-kitborsa">${escapeHtml(String(info.kitE || ''))}</td>
+          <td class="cell-codemin">${fmtNum(min)}</td>
+          <td class="cell-qta"><input type="text" inputmode="numeric" class="kit-qta-input" data-row-idx="${rowIdx}" data-item-idx="${itIdx}" value="${fmtInt(q)}"></td>
+          <td class="cell-fte">${fmtNum(fte)}</td>
+          <td class="cell-actions"><button class="icon-btn row-action danger" data-action="delete-kit" data-row-idx="${rowIdx}" data-item-idx="${itIdx}" title="Rimuovi codice">✕</button></td>
+        </tr>`;
+    }).join('');
 
-    const addControl = available.length > 0
-      ? `<div class="kit-add">
-           <select class="kit-add-select" data-row-idx="${rowIdx}">
-             ${available.map(a => `<option value="${escapeHtml(a.codiceC)}">${escapeHtml(a.codiceC)}${a.desc ? ' — ' + escapeHtml(a.desc) : ''}</option>`).join('')}
-           </select>
-           <button class="icon-btn kit-add-btn" data-action="add-kit" data-row-idx="${rowIdx}">+ Aggiungi codice</button>
-         </div>`
-      : '';
+    const addRow = `
+      <tr class="addcode-row" data-row-idx="${rowIdx}">
+        <td class="cell-week">${week}</td>
+        <td class="cell-artcode pickable" data-row-idx="${rowIdx}" title="Clicca per cambiare articolo">${escapeHtml(r.codice) || '<span class="placeholder">— scegli articolo —</span>'}</td>
+        <td class="cell-artdesc">${escapeHtml(r.descrizione)}</td>
+        <td class="addcode-cell" colspan="5">
+          ${available.length > 0
+            ? `<select class="kit-add-select" data-row-idx="${rowIdx}">
+                 ${available.map(a => `<option value="${escapeHtml(a.codiceC)}">${escapeHtml(a.codiceC)} — ${escapeHtml(a.desc || '')}</option>`).join('')}
+               </select>
+               <button class="icon-btn kit-add-btn" data-action="add-kit" data-row-idx="${rowIdx}">+ Aggiungi codice</button>`
+            : '<span class="placeholder">Nessun codice kit per questo articolo nel foglio</span>'}
+        </td>
+        <td class="cell-fte"></td>
+        <td class="cell-actions"><button class="icon-btn row-action danger" data-action="delete-row" data-row-idx="${rowIdx}" title="Rimuovi articolo">🗑</button></td>
+      </tr>`;
 
-    return `
-      <div class="kit-article">
-        <div class="kit-article-head">${escapeHtml(r.codice)}${r.descrizione ? ' — ' + escapeHtml(r.descrizione) : ''}</div>
-        ${itemsHtml}
-        ${addControl}
-      </div>`;
+    return codeRows + addRow;
   }).join('');
+
+  const emptyRow = `
+    <tr><td colspan="10" class="table-empty">Nessun articolo. Usa "+ Aggiungi Articolo" per iniziare.</td></tr>`;
 
   return `
     <section class="block ${confirmed ? '' : 'unconfirmed'}" data-block-id="${block.id}">
@@ -2345,42 +2453,34 @@ function renderBlock(block) {
             ${!confirmed ? `<button class="icon-btn confirm-btn" data-action="confirm-block" title="Conferma Blocco">✓ Conferma</button>` : ''}
             <button class="icon-btn new-block-btn" data-action="new-block" title="Crea Nuovo Blocco">+ Nuovo Blocco</button>
             <button class="icon-btn" data-action="duplicate-block" title="Duplica Blocco">Duplica</button>
-            <button class="icon-btn" data-action="add-row" title="Aggiungi Riga">+ Riga</button>
+            <button class="icon-btn" data-action="add-row" title="Aggiungi Articolo">+ Articolo</button>
             <button class="icon-btn" data-action="edit-date" title="Modifica Data di Entrata">Modifica Data</button>
             <button class="icon-btn danger" data-action="delete-block" title="Elimina Blocco">Elimina</button>
           </div>
         </div>
 
-        <table class="block-table">
+        <table class="block-table block-table-kit">
           <colgroup>
-            <col class="col-week"><col class="col-unita"><col class="col-codice">
-            <col class="col-descrizione"><col class="col-minuti"><col class="col-bollettino">
-            <col class="col-note"><col class="col-actions">
+            <col class="col-week"><col class="col-artcode"><col class="col-artdesc">
+            <col class="col-code"><col class="col-codedesc"><col class="col-kitborsa">
+            <col class="col-codemin"><col class="col-qta"><col class="col-fte"><col class="col-actions">
           </colgroup>
           <thead>
             <tr>
               <th class="col-week">Settimana</th>
-              <th class="col-unita">N° Unità<br>Caricate</th>
-              <th class="col-codice">Codice<br>Articolo</th>
-              <th class="col-descrizione">Descrizione Articolo</th>
-              <th class="col-minuti">Minuti</th>
-              <th class="col-bollettino">OP</th>
-              <th class="col-note">Note</th>
+              <th class="col-artcode">Codice<br>Articolo</th>
+              <th class="col-artdesc">Descrizione Articolo</th>
+              <th class="col-code">Codice<br>(J/K)</th>
+              <th class="col-codedesc">Descrizione Codice</th>
+              <th class="col-kitborsa">Kit/<br>Borsa</th>
+              <th class="col-codemin">Minuti<br>Codice</th>
+              <th class="col-qta">Qtà</th>
+              <th class="col-fte">FTE</th>
               <th class="col-actions"></th>
             </tr>
           </thead>
-          <tbody>${rowsHtml}</tbody>
+          <tbody>${bodyRows || emptyRow}</tbody>
         </table>
-
-        <div class="kit-section">
-          <div class="kit-header">
-            <span class="kit-title">Codici Kit</span>
-            <span class="kit-count">${kitArticlesCount === 0
-              ? 'Nessun articolo con codici'
-              : `${kitArticlesCount} ${kitArticlesCount === 1 ? 'articolo' : 'articoli'}`}</span>
-          </div>
-          <div class="kit-list">${kitSectionHtml || '<div class="kit-empty">Nessun codice kit. Aggiungi un articolo presente nel foglio kit.</div>'}</div>
-        </div>
 
         <div class="requests-section">
           <div class="requests-header">
@@ -3086,19 +3186,36 @@ function setupBlocksDelegation() {
     }
   });
 
-  // Cambio quantità su un codice kit
+  // Cambio quantità o cambio codice su una riga kit
   container.addEventListener('change', (e) => {
+    // Quantità
     const inp = e.target.closest('input.kit-qta-input');
-    if (!inp) return;
-    const blockEl = inp.closest('.block');
-    if (!blockEl) return;
-    const blockId = blockEl.dataset.blockId;
-    const rowIdx = parseInt(inp.dataset.rowIdx);
-    const itemIdx = parseInt(inp.dataset.itemIdx);
-    const block = state.blocks.find(b => b.id === blockId);
-    if (!block || !block.rows[rowIdx] || !block.rows[rowIdx].kitItems || !block.rows[rowIdx].kitItems[itemIdx]) return;
-    block.rows[rowIdx].kitItems[itemIdx].quantita = parseNum(inp.value);
-    persistAndRender();
+    if (inp) {
+      const blockEl = inp.closest('.block');
+      if (!blockEl) return;
+      const blockId = blockEl.dataset.blockId;
+      const rowIdx = parseInt(inp.dataset.rowIdx);
+      const itemIdx = parseInt(inp.dataset.itemIdx);
+      const block = state.blocks.find(b => b.id === blockId);
+      if (!block || !block.rows[rowIdx] || !block.rows[rowIdx].kitItems || !block.rows[rowIdx].kitItems[itemIdx]) return;
+      block.rows[rowIdx].kitItems[itemIdx].quantita = parseNum(inp.value);
+      persistAndRender();
+      return;
+    }
+    // Cambio codice (tendina nella colonna Codice)
+    const sel = e.target.closest('select.code-select');
+    if (sel) {
+      const blockEl = sel.closest('.block');
+      if (!blockEl) return;
+      const blockId = blockEl.dataset.blockId;
+      const rowIdx = parseInt(sel.dataset.rowIdx);
+      const itemIdx = parseInt(sel.dataset.itemIdx);
+      const block = state.blocks.find(b => b.id === blockId);
+      if (!block || !block.rows[rowIdx] || !block.rows[rowIdx].kitItems || !block.rows[rowIdx].kitItems[itemIdx]) return;
+      block.rows[rowIdx].kitItems[itemIdx].codiceC = sel.value;
+      persistAndRender();
+      return;
+    }
   });
 }
 
