@@ -1797,11 +1797,6 @@ button.link-btn:hover {
 <div class="toolbar">
   <div class="toolbar-group">
     <button id="goToTodayBtn">↓ Vai a Oggi</button>
-    <button id="refreshCatalogBtn" title="Ricarica il catalogo articoli dal foglio Google">↻ Catalogo</button>
-    <button id="syncSettingsBtn" title="Configura sincronizzazione con Google Sheets">
-      <span class="sync-dot" id="syncDot"></span>
-      <span id="syncStatus">Sync</span>
-    </button>
     <span class="app-version" id="appVersion" title="Versione dell'app attualmente caricata"></span>
   </div>
   <div class="toolbar-group">
@@ -1946,41 +1941,6 @@ button.link-btn:hover {
   </div>
 </div>
 
-<!-- MODAL: Sync Settings -->
-<div class="modal-backdrop" id="syncSettingsModal">
-  <div class="modal request-modal">
-    <h2>Sincronizzazione Google Sheets</h2>
-    <p class="modal-subtitle">La configurazione (URL e chiave) è impostata nel codice dell'app, non qui. Questo pannello serve solo a vedere lo stato e a forzare una sincronizzazione. Per cambiare endpoint o chiave, modifica le costanti SYNC_* nel codice e ridistribuisci.</p>
-    <div class="request-form">
-      <div class="field">
-        <span class="field-label">URL Endpoint Sync</span>
-        <input type="text" id="syncWorkerUrl" placeholder="https://script.google.com/macros/.../exec  oppure  https://nome.workers.dev">
-      </div>
-      <div class="field">
-        <span class="field-label">Chiave di Sync (opzionale)</span>
-        <input type="password" id="syncSecret" placeholder="Solo se Apps Script ha SYNC_SECRET attiva; lascia vuoto se chiami il Worker">
-      </div>
-      <div class="field">
-        <span class="field-label">Sincronizzazione automatica</span>
-        <select id="syncEnabled" style="padding: 10px 12px; border: 1px solid var(--rule); background: var(--paper); font-family: inherit; font-weight: 700; font-size: 14px;">
-          <option value="true">Attiva — sync ogni 5 minuti</option>
-          <option value="false">Disattivata</option>
-        </select>
-      </div>
-      <div class="field">
-        <span class="field-label">Stato</span>
-        <div id="syncLastInfo" style="font-size: 12px; color: var(--ink-muted);">—</div>
-      </div>
-    </div>
-    <div class="modal-actions">
-      <button id="syncTestBtn">Test connessione</button>
-      <button id="syncCancelBtn">Annulla</button>
-      <button id="syncSaveBtn" class="primary">Sincronizza ora</button>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST container -->
 <div id="toastContainer" class="toast-container"></div>
 
 <script>
@@ -2561,8 +2521,21 @@ function render() {
   const container = document.getElementById('blocksContainer');
 
   if (blocks.length === 0) {
+    const hasHidden = state.blocks && state.blocks.length > 0 && state.filter === 'month' && !state.search;
+    let msg;
+    if (state.search) {
+      msg = 'Nessun risultato per la ricerca.';
+    } else if (hasHidden) {
+      msg = `Ci sono ${state.blocks.length} blocchi fuori dall'ultimo mese. Mostra tutto lo storico per vederli.`;
+    } else {
+      msg = 'Nessun blocco. Crea un nuovo blocco per iniziare.';
+    }
+    const showAllBtn = hasHidden
+      ? `<button class="icon-btn" data-action="show-all" style="padding: 12px 24px; font-size: 13px; margin-right: 10px;">Mostra tutto lo storico</button>`
+      : '';
     container.innerHTML = `<div class="empty-state">
-      <p style="margin-bottom: 20px;">${state.search ? 'Nessun risultato per la ricerca.' : 'Nessun blocco nel periodo selezionato.'}</p>
+      <p style="margin-bottom: 20px;">${msg}</p>
+      ${showAllBtn}
       <button class="icon-btn new-block-btn" data-action="new-block" style="padding: 12px 24px; font-size: 13px;">+ Nuovo Blocco</button>
     </div>`;
   } else {
@@ -3269,6 +3242,12 @@ async function handleAction(blockId, action, rowIdx, requestIdx, itemIdx) {
     openNewBlockModal();
     return;
   }
+  if (action === 'show-all') {
+    state.filter = 'all';
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+    render();
+    return;
+  }
 
   const block = state.blocks.find(b => b.id === blockId);
   if (!block) return;
@@ -3411,7 +3390,6 @@ async function persistAndRender() {
 function setupToolbar() {
   const addBlockBtn = document.getElementById('addBlockBtn');
   if (addBlockBtn) addBlockBtn.addEventListener('click', () => openNewBlockModal());
-  document.getElementById('refreshCatalogBtn').addEventListener('click', handleCatalogClick);
   document.getElementById('goToTodayBtn').addEventListener('click', () => {
     const today = new Date();
     // Cerca un blocco la cui finestra (entrata → uscita) include oggi
@@ -3651,7 +3629,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'v22 · tendina ＋ codici';
+const APP_VERSION = 'v23 · sync auto silenziosa';
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
@@ -3662,7 +3640,7 @@ const APP_VERSION = 'v22 · tendina ＋ codici';
 // esterna da toccare nel modal.
 //   - Apps Script: https://script.google.com/macros/s/.../exec
 //   - Worker Cloudflare: https://nome.tuoaccount.workers.dev  (in tal caso lascia secret = '')
-const SYNC_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwJCQn2X4nBXhoQlAxj0g5UwzdVZIbwHYd8AY85WNX8t97YExa0A1_M-6Njhr6y5CHvPQ/exec';
+const SYNC_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbyVRyiZvNBZY6r9EI7p1XrwMXPIeBEiJg-3sYoouohQbAUZuBAmIRU-JCcEVzXGJwYEoA/exec';
 const SYNC_SECRET_DEFAULT = 'C8mP2vL9nR4tY3wX7cD4zH6jF1aB8sGq';
 const SYNC_ENABLED_DEFAULT = true; // sync automatica sempre attiva
 
@@ -3716,11 +3694,12 @@ async function syncNow(silent = false) {
     return { skipped: true };
   }
 
+  const wasError = syncState.status === 'error';
+
   // SICUREZZA: non sovrascrivere mai il foglio con zero blocchi.
   // Evita che un browser partito vuoto cancelli i dati veri sul foglio.
   if (!state.blocks || state.blocks.length === 0) {
     setSyncDot('idle', 'Sync pronto');
-    if (!silent) showToast('Sync saltata: nessun blocco da inviare (per sicurezza non svuoto il foglio).', 'info', 4500);
     return { skipped: true, reason: 'empty' };
   }
 
@@ -3762,21 +3741,24 @@ async function syncNow(silent = false) {
     syncState.lastError = null;
     syncState.status = 'success';
     setSyncDot('success', 'Sync ✓');
-    if (!silent) showToast(`Sincronizzato: ${data.rows_written || 0} righe sul foglio`, 'success');
     return data;
   } catch (err) {
     console.error('Sync error:', err);
     syncState.lastError = err.message || String(err);
     syncState.status = 'error';
     setSyncDot('error', 'Sync errore');
-    if (!silent) showToast('Errore sync: ' + syncState.lastError, 'error', 5000);
+    // Alert SOLO al primo errore (niente spam se resta offline)
+    if (!wasError) showToast('Errore di sincronizzazione col foglio: le modifiche potrebbero non essere salvate sul foglio. Riprovo automaticamente.', 'error', 6000);
     return { error: syncState.lastError };
   }
 }
 
 function startSyncTimer() {
   stopSyncTimer();
-  syncTimer = setInterval(() => syncNow(true), 5 * 60 * 1000);
+  syncTimer = setInterval(() => {
+    syncNow(true);      // invia i blocchi al foglio
+    fetchKitMap(true);  // aggiorna codici kit + minuti dal foglio
+  }, 5 * 60 * 1000);
 }
 
 function stopSyncTimer() {
@@ -3795,63 +3777,7 @@ async function initSync() {
   }
 }
 
-function setupSyncSettingsModal() {
-  const modal = document.getElementById('syncSettingsModal');
-  document.getElementById('syncSettingsBtn').addEventListener('click', async () => {
-    const cfg = await loadSyncConfig();
-    const urlEl = document.getElementById('syncWorkerUrl');
-    const secEl = document.getElementById('syncSecret');
-    const enEl = document.getElementById('syncEnabled');
-    // Campi solo informativi: la config è nel codice
-    urlEl.value = cfg.workerUrl || '';
-    urlEl.readOnly = true;
-    secEl.value = cfg.secret || '';
-    secEl.readOnly = true;
-    enEl.value = String(cfg.enabled !== false);
-    enEl.disabled = true;
-    const info = document.getElementById('syncLastInfo');
-    if (syncState.lastSyncAt) {
-      info.textContent = `Ultimo sync: ${syncState.lastSyncAt.toLocaleString('it-IT')}` +
-        (syncState.lastError ? ` · ERRORE: ${syncState.lastError}` : ' · OK');
-    } else {
-      info.textContent = syncState.lastError ? `ERRORE: ${syncState.lastError}` : 'Mai sincronizzato';
-    }
-    modal.classList.add('show');
-  });
-
-  modal.addEventListener('click', (e) => {
-    if (e.target.id === 'syncSettingsModal') modal.classList.remove('show');
-  });
-
-  document.getElementById('syncCancelBtn').addEventListener('click', () => modal.classList.remove('show'));
-
-  // "Salva" ora è "Sincronizza ora": forza sync foglio + ricarica codici kit
-  document.getElementById('syncSaveBtn').addEventListener('click', async () => {
-    modal.classList.remove('show');
-    await syncNow(false);
-    fetchKitMap(false);
-  });
-
-  document.getElementById('syncTestBtn').addEventListener('click', async () => {
-    const url = document.getElementById('syncWorkerUrl').value.trim();
-    if (!url) { showToast('Inserisci prima un URL', 'error'); return; }
-    try {
-      // Apps Script: GET sull'URL stesso
-      // Worker: GET su /health
-      const isAppsScript = /script\.google\.com/.test(url);
-      const healthUrl = isAppsScript ? url : (url.replace(/\/$/, '') + '/health');
-      const res = await fetch(healthUrl);
-      const data = await res.json();
-      if (data.ok) {
-        showToast(`${isAppsScript ? 'Apps Script' : 'Worker'} raggiungibile: ${data.time || 'ok'}`, 'success');
-      } else {
-        showToast('Endpoint raggiunto ma risposta inattesa', 'error');
-      }
-    } catch (e) {
-      showToast('Endpoint non raggiungibile: ' + e.message, 'error', 5000);
-    }
-  });
-}
+function setupSyncSettingsModal() { /* UI sync rimossa: sync ora è automatica e silenziosa */ }
 
 async function init() {
   try {
@@ -3868,7 +3794,6 @@ async function init() {
       if (fromSheet && fromSheet.length > 0) {
         state.blocks = fromSheet;
         await saveBlocks(state.blocks);
-        showToast(`Blocchi recuperati dal foglio: ${fromSheet.length}`, 'success', 4000);
       }
     }
 
@@ -3890,8 +3815,9 @@ async function init() {
     setupRequestModal();
     setupSyncSettingsModal();
     await initSync();
-    // Aggiorno i codici kit dal foglio in background (ridisegna da solo quando arriva)
+    // Auto-sync con tutti i fogli in background (silenzioso): codici kit + catalogo
     fetchKitMap(true);
+    refreshCatalog(true);
   } catch (e) {
     console.error('Errore in init():', e);
     const container = document.getElementById('blocksContainer');
