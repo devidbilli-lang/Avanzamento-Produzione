@@ -621,6 +621,45 @@ button.icon-btn.row-action.danger:hover {
 .block-main {
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+/* Bottone "+" tondo trascinabile (glassmorphism verde) per aggiungere un codice */
+.block-fab {
+  position: absolute;
+  right: 28px;
+  bottom: 96px;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  font-size: 28px;
+  font-weight: 800;
+  line-height: 1;
+  color: #0b3d24;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  z-index: 30;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  background: rgba(100, 255, 158, 0.30);
+  border: 1.5px solid rgba(100, 255, 158, 0.75);
+  backdrop-filter: blur(9px) saturate(150%);
+  -webkit-backdrop-filter: blur(9px) saturate(150%);
+  box-shadow: 0 8px 24px rgba(100, 255, 158, 0.40),
+              inset 0 1px 0 rgba(255, 255, 255, 0.55),
+              inset 0 -2px 6px rgba(100, 255, 158, 0.25);
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.block-fab:hover {
+  background: rgba(100, 255, 158, 0.50);
+  transform: scale(1.05);
+}
+.block-fab:active {
+  cursor: grabbing;
+  transform: scale(0.96);
 }
 
 .block-bar {
@@ -2431,9 +2470,6 @@ function renderBlock(block) {
              ${available.map(a => `<option value="${escapeHtml(a.codiceC)}"${a.codiceC === it.codiceC ? ' selected' : ''}>${escapeHtml(a.codiceC)}</option>`).join('')}
            </select>`
         : escapeHtml(it.codiceC);
-      const addBtn = isLast
-        ? `<button class="icon-btn addcode-inline" data-action="add-kit" data-row-idx="${rowIdx}" title="Aggiungi un altro codice a questo articolo">+</button>`
-        : '';
       return `
         <tr class="code-row" data-row-idx="${rowIdx}" data-item-idx="${itIdx}">
           <td class="cell-week">${week}</td>
@@ -2446,7 +2482,6 @@ function renderBlock(block) {
           <td class="cell-qta"><input type="text" inputmode="numeric" class="kit-qta-input" data-row-idx="${rowIdx}" data-item-idx="${itIdx}" value="${fmtInt(q)}"></td>
           <td class="cell-fte">${fmtNum(fte)}</td>
           <td class="cell-actions">
-            ${addBtn}
             <button class="icon-btn row-action danger" data-action="delete-kit" data-row-idx="${rowIdx}" data-item-idx="${itIdx}" title="Rimuovi questo codice">✕</button>
           </td>
         </tr>`;
@@ -2540,6 +2575,7 @@ function renderBlock(block) {
             <button class="ghost" data-action="add-request">+ Aggiungi Richiesta</button>
           </div>
         </div>
+        <button class="block-fab" title="Aggiungi un codice all'ultimo articolo (trascinabile)">+</button>
       </div>
 
       <div class="block-side exit">
@@ -2549,6 +2585,89 @@ function renderBlock(block) {
       </div>
     </section>
   `;
+}
+
+// =============================================================================
+// FAB "+" trascinabile per blocco — aggiunge un codice all'ultimo articolo
+// =============================================================================
+let fabPositions = {};   // { blockId: {left, top} } posizione personalizzata
+let _fabDrag = null;
+
+function setupFab() {
+  const container = document.getElementById('blocksContainer');
+  if (!container) return;
+
+  container.addEventListener('pointerdown', (e) => {
+    const fab = e.target.closest('.block-fab');
+    if (!fab) return;
+    e.preventDefault();
+    const blockEl = fab.closest('.block');
+    if (!blockEl) return;
+    _fabDrag = {
+      fab,
+      blockId: blockEl.dataset.blockId,
+      startX: e.clientX, startY: e.clientY,
+      origLeft: fab.offsetLeft, origTop: fab.offsetTop,
+      moved: false
+    };
+    try { fab.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+
+  container.addEventListener('pointermove', (e) => {
+    if (!_fabDrag) return;
+    const dx = e.clientX - _fabDrag.startX;
+    const dy = e.clientY - _fabDrag.startY;
+    if (Math.abs(dx) > 4 || Math.abs(dy) > 4) _fabDrag.moved = true;
+    if (!_fabDrag.moved) return;
+    const fab = _fabDrag.fab;
+    const main = fab.offsetParent || fab.parentElement;
+    let nl = _fabDrag.origLeft + dx;
+    let nt = _fabDrag.origTop + dy;
+    nl = Math.max(0, Math.min(nl, main.clientWidth - fab.offsetWidth));
+    nt = Math.max(0, Math.min(nt, main.clientHeight - fab.offsetHeight));
+    fab.style.left = nl + 'px';
+    fab.style.top = nt + 'px';
+    fab.style.right = 'auto';
+    fab.style.bottom = 'auto';
+  });
+
+  const endDrag = () => {
+    if (!_fabDrag) return;
+    const { fab, blockId, moved } = _fabDrag;
+    _fabDrag = null;
+    if (moved) {
+      fabPositions[blockId] = { left: fab.offsetLeft, top: fab.offsetTop };
+    } else {
+      handleFabAdd(blockId);
+    }
+  };
+  container.addEventListener('pointerup', endDrag);
+  container.addEventListener('pointercancel', endDrag);
+}
+
+function applyFabPositions() {
+  document.querySelectorAll('.block-fab').forEach(fab => {
+    const blockEl = fab.closest('.block');
+    if (!blockEl) return;
+    const pos = fabPositions[blockEl.dataset.blockId];
+    if (pos) {
+      fab.style.left = pos.left + 'px';
+      fab.style.top = pos.top + 'px';
+      fab.style.right = 'auto';
+      fab.style.bottom = 'auto';
+    }
+  });
+}
+
+async function handleFabAdd(blockId) {
+  const block = state.blocks.find(b => b.id === blockId);
+  if (!block) return;
+  if (!block.rows || block.rows.length === 0) {
+    openArticlePicker(blockId); // nessun articolo → apro la scelta articolo
+    return;
+  }
+  const rowIdx = block.rows.length - 1; // aggiungo all'ultimo articolo
+  await handleAction(blockId, 'add-kit', rowIdx);
 }
 
 function render() {
@@ -2576,6 +2695,7 @@ function render() {
     </div>`;
   } else {
     container.innerHTML = blocks.map(renderBlock).join('');
+    applyFabPositions();
   }
 }
 
@@ -3667,7 +3787,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'v25 · inserimento inline';
+const APP_VERSION = 'v26 · bottone + tondo';
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
@@ -3848,6 +3968,7 @@ async function init() {
     setupToolbar();
     setupModal();
     setupBlocksDelegation();
+    setupFab();
     setupArticlePicker();
     setupCatalogModal();
     setupRequestModal();
