@@ -2108,7 +2108,14 @@ async function fetchKitMap(silent = true) {
     if (data && data.ok && data.kits) {
       state.kitMap = data.kits;
       await saveKitMapToStorage(data.kits);
-      if (!silent) showToast(`Codici kit aggiornati: ${data.count || Object.keys(data.kits).length}`, 'success');
+      if (!silent) {
+        let totalCodes = 0;
+        Object.keys(data.kits).forEach(k => {
+          if (Array.isArray(data.kits[k])) totalCodes += data.kits[k].length;
+          else totalCodes += 1;
+        });
+        showToast(`Kit aggiornati: ${Object.keys(data.kits).length} articoli, ${totalCodes} codici`, 'success', 4000);
+      }
       if (typeof render === 'function') render();
       return data.kits;
     } else {
