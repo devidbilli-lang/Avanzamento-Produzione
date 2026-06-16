@@ -782,13 +782,32 @@ button.icon-btn.row-action.danger:hover {
 .col-bollettino  { width: 22%; }
 .col-quantita { width: 7%; }
 .col-note     { width: 12%; }
-.col-actions  { width: 5%; }
+.col-actions  { width: 8%; }
+
+/* Pulsante "+" inline per aggiungere un codice all'articolo */
+.block-table-kit .cell-actions { white-space: nowrap; text-align: center; }
+.addcode-inline {
+  background: rgba(26, 138, 90, 0.14) !important;
+  color: #1a7a50 !important;
+  border: 1px solid rgba(26, 138, 90, 0.4) !important;
+  font-weight: 800 !important;
+  font-size: 15px !important;
+  line-height: 1 !important;
+  padding: 3px 9px !important;
+  border-radius: 6px;
+  margin-right: 5px;
+  cursor: pointer;
+}
+.addcode-inline:hover {
+  background: #1a8a5a !important;
+  color: #fff !important;
+}
 
 /* === TABELLA UNICA KIT === */
 .col-artcode   { width: 9%; }
 .col-artdesc   { width: 19%; }
 .col-code      { width: 11%; }
-.col-codedesc  { width: 19%; }
+.col-codedesc  { width: 16%; }
 .col-kitborsa  { width: 6%; }
 .col-codemin   { width: 7%; }
 .col-qta       { width: 8%; }
@@ -2387,17 +2406,34 @@ function renderBlock(block) {
     const available = lookupKit(r.codice); // [{codiceC, kitE, desc, minuti}]
     const items = r.kitItems || [];
 
-    const codeRows = items.map((it, itIdx) => {
+    // Articolo il cui SKU non ha codici kit nel foglio
+    if (items.length === 0) {
+      return `
+        <tr class="code-row" data-row-idx="${rowIdx}">
+          <td class="cell-week">${week}</td>
+          <td class="cell-artcode">${escapeHtml(r.codice)}</td>
+          <td class="cell-artdesc">${escapeHtml(r.descrizione)}</td>
+          <td class="cell-code" colspan="5"><span class="placeholder">Nessun codice kit per questo articolo nel foglio</span></td>
+          <td class="cell-fte"></td>
+          <td class="cell-actions"><button class="icon-btn row-action danger" data-action="delete-row" data-row-idx="${rowIdx}" title="Rimuovi articolo">🗑</button></td>
+        </tr>`;
+    }
+
+    return items.map((it, itIdx) => {
       const info = available.find(a => a.codiceC === it.codiceC) || { kitE: '', desc: '', minuti: '' };
       const kitE = parseNum(info.kitE);
       const min = parseNum(info.minuti);
       const q = parseNum(it.quantita);
       const fte = (min * q * kitE) / FTE_DIVISORE;
+      const isLast = itIdx === items.length - 1;
       const codeCell = available.length > 0
         ? `<select class="code-select" data-row-idx="${rowIdx}" data-item-idx="${itIdx}">
              ${available.map(a => `<option value="${escapeHtml(a.codiceC)}"${a.codiceC === it.codiceC ? ' selected' : ''}>${escapeHtml(a.codiceC)}</option>`).join('')}
            </select>`
         : escapeHtml(it.codiceC);
+      const addBtn = isLast
+        ? `<button class="icon-btn addcode-inline" data-action="add-kit" data-row-idx="${rowIdx}" title="Aggiungi un altro codice a questo articolo">+</button>`
+        : '';
       return `
         <tr class="code-row" data-row-idx="${rowIdx}" data-item-idx="${itIdx}">
           <td class="cell-week">${week}</td>
@@ -2409,29 +2445,12 @@ function renderBlock(block) {
           <td class="cell-codemin">${fmtNum(min)}</td>
           <td class="cell-qta"><input type="text" inputmode="numeric" class="kit-qta-input" data-row-idx="${rowIdx}" data-item-idx="${itIdx}" value="${fmtInt(q)}"></td>
           <td class="cell-fte">${fmtNum(fte)}</td>
-          <td class="cell-actions"><button class="icon-btn row-action danger" data-action="delete-kit" data-row-idx="${rowIdx}" data-item-idx="${itIdx}" title="Rimuovi codice">✕</button></td>
+          <td class="cell-actions">
+            ${addBtn}
+            <button class="icon-btn row-action danger" data-action="delete-kit" data-row-idx="${rowIdx}" data-item-idx="${itIdx}" title="Rimuovi questo codice">✕</button>
+          </td>
         </tr>`;
     }).join('');
-
-    const addRow = `
-      <tr class="addcode-row" data-row-idx="${rowIdx}">
-        <td class="cell-week">${week}</td>
-        <td class="cell-artcode">${escapeHtml(r.codice) || '<span class="placeholder">—</span>'}</td>
-        <td class="cell-artdesc">${escapeHtml(r.descrizione)}</td>
-        <td class="addcode-cell" colspan="5">
-          ${available.length > 0
-            ? `<select class="kit-add-select" data-row-idx="${rowIdx}" title="Aggiungi un codice a questo articolo">
-                 <option value="">＋</option>
-                 ${available.map(a => `<option value="${escapeHtml(a.codiceC)}">${escapeHtml(a.codiceC)} — ${escapeHtml(a.desc || '')}</option>`).join('')}
-               </select>`
-            : '<span class="placeholder">Nessun codice kit per questo articolo nel foglio</span>'}
-          <button class="icon-btn addart-btn" data-action="add-row" title="Aggiungi un nuovo articolo (non cancella questo)">+ Articolo</button>
-        </td>
-        <td class="cell-fte"></td>
-        <td class="cell-actions"><button class="icon-btn row-action danger" data-action="delete-row" data-row-idx="${rowIdx}" title="Rimuovi articolo">🗑</button></td>
-      </tr>`;
-
-    return codeRows + addRow;
   }).join('');
 
   const emptyRow = `
@@ -3270,15 +3289,15 @@ async function handleAction(blockId, action, rowIdx, requestIdx, itemIdx) {
   if (!block) return;
 
   if (action === 'add-kit') {
-    // Aggiunge un codice kit alla riga articolo (dal menu a tendina di quella riga)
+    // Aggiunge un altro codice all'articolo: primo codice non ancora usato
     const row = block.rows[rowIdx];
     if (!row) return;
-    const blockEl = document.querySelector(`.block[data-block-id="${blockId}"]`);
-    const sel = blockEl ? blockEl.querySelector(`.kit-add-select[data-row-idx="${rowIdx}"]`) : null;
-    const code = sel ? sel.value : '';
-    if (!code) { showToast('Nessun codice disponibile da aggiungere', 'error'); return; }
+    const available = lookupKit(row.codice);
+    if (available.length === 0) { showToast('Nessun codice kit disponibile per questo articolo', 'error'); return; }
     if (!row.kitItems) row.kitItems = [];
-    row.kitItems.push({ codiceC: code, quantita: 0 });
+    const used = new Set(row.kitItems.map(it => it.codiceC));
+    const next = available.find(a => !used.has(a.codiceC)) || available[0];
+    row.kitItems.push({ codiceC: next.codiceC, quantita: 0 });
     await persistAndRender();
     return;
   }
@@ -3286,6 +3305,8 @@ async function handleAction(blockId, action, rowIdx, requestIdx, itemIdx) {
     const row = block.rows[rowIdx];
     if (!row || !row.kitItems || itemIdx == null || !row.kitItems[itemIdx]) return;
     row.kitItems.splice(itemIdx, 1);
+    // Se era l'ultimo codice dell'articolo, rimuovo l'articolo intero
+    if (row.kitItems.length === 0) block.rows.splice(rowIdx, 1);
     await persistAndRender();
     return;
   }
@@ -3646,7 +3667,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'v24 · + articolo non cancella';
+const APP_VERSION = 'v25 · inserimento inline';
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
