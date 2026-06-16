@@ -882,6 +882,22 @@ button.icon-btn.row-action.danger:hover {
   border-color: #3a78c2;
   box-shadow: 0 0 0 2px rgba(58, 120, 194, 0.18);
 }
+.addcode-cell .addart-btn {
+  margin-left: 14px;
+  white-space: nowrap;
+  background: rgba(26, 138, 90, 0.12) !important;
+  color: #1a7a50 !important;
+  border: 1px solid rgba(26, 138, 90, 0.4) !important;
+  font-weight: 800 !important;
+  font-size: 11px !important;
+  padding: 5px 12px !important;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.addcode-cell .addart-btn:hover {
+  background: #1a8a5a !important;
+  color: #fff !important;
+}
 .addcode-cell .kit-add-btn {
   margin-left: 8px;
   white-space: nowrap;
@@ -2385,7 +2401,7 @@ function renderBlock(block) {
       return `
         <tr class="code-row" data-row-idx="${rowIdx}" data-item-idx="${itIdx}">
           <td class="cell-week">${week}</td>
-          <td class="cell-artcode pickable" data-row-idx="${rowIdx}" title="Clicca per cambiare articolo">${escapeHtml(r.codice)}</td>
+          <td class="cell-artcode">${escapeHtml(r.codice)}</td>
           <td class="cell-artdesc">${escapeHtml(r.descrizione)}</td>
           <td class="cell-code">${codeCell}</td>
           <td class="cell-codedesc">${escapeHtml(info.desc || '')}</td>
@@ -2400,15 +2416,16 @@ function renderBlock(block) {
     const addRow = `
       <tr class="addcode-row" data-row-idx="${rowIdx}">
         <td class="cell-week">${week}</td>
-        <td class="cell-artcode pickable" data-row-idx="${rowIdx}" title="Clicca per cambiare articolo">${escapeHtml(r.codice) || '<span class="placeholder">— scegli articolo —</span>'}</td>
+        <td class="cell-artcode">${escapeHtml(r.codice) || '<span class="placeholder">—</span>'}</td>
         <td class="cell-artdesc">${escapeHtml(r.descrizione)}</td>
         <td class="addcode-cell" colspan="5">
           ${available.length > 0
-            ? `<select class="kit-add-select" data-row-idx="${rowIdx}" title="Aggiungi un codice kit">
+            ? `<select class="kit-add-select" data-row-idx="${rowIdx}" title="Aggiungi un codice a questo articolo">
                  <option value="">＋</option>
                  ${available.map(a => `<option value="${escapeHtml(a.codiceC)}">${escapeHtml(a.codiceC)} — ${escapeHtml(a.desc || '')}</option>`).join('')}
                </select>`
             : '<span class="placeholder">Nessun codice kit per questo articolo nel foglio</span>'}
+          <button class="icon-btn addart-btn" data-action="add-row" title="Aggiungi un nuovo articolo (non cancella questo)">+ Articolo</button>
         </td>
         <td class="cell-fte"></td>
         <td class="cell-actions"><button class="icon-btn row-action danger" data-action="delete-row" data-row-idx="${rowIdx}" title="Rimuovi articolo">🗑</button></td>
@@ -3629,7 +3646,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'v23 · sync auto silenziosa';
+const APP_VERSION = 'v24 · + articolo non cancella';
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
