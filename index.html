@@ -1743,12 +1743,11 @@ button.link-btn:hover {
 <div class="modal-backdrop" id="syncSettingsModal">
   <div class="modal request-modal">
     <h2>Sincronizzazione Google Sheets</h2>
-    <p class="modal-subtitle">Inserisci l'URL Apps Script o l'URL del Worker Cloudflare. L'app rileva automaticamente quale dei due è e si comporta di conseguenza. La sync è automatica ogni 5 minuti quando abilitata, e ad ogni modifica dei blocchi.</p>
+    <p class="modal-subtitle">La configurazione (URL e chiave) è impostata nel codice dell'app, non qui. Questo pannello serve solo a vedere lo stato e a forzare una sincronizzazione. Per cambiare endpoint o chiave, modifica le costanti SYNC_* nel codice e ridistribuisci.</p>
     <div class="request-form">
       <div class="field">
         <span class="field-label">URL Endpoint Sync</span>
         <input type="text" id="syncWorkerUrl" placeholder="https://script.google.com/macros/.../exec  oppure  https://nome.workers.dev">
-        <button type="button" id="syncUseDefaultBtn" style="margin-top:6px; align-self:flex-start; padding:6px 12px; border:1px solid var(--rule); background:var(--paper-2); font-family:inherit; font-weight:700; font-size:12px; border-radius:8px; cursor:pointer;">↻ Usa URL predefinito (dal codice)</button>
       </div>
       <div class="field">
         <span class="field-label">Chiave di Sync (opzionale)</span>
@@ -1769,7 +1768,7 @@ button.link-btn:hover {
     <div class="modal-actions">
       <button id="syncTestBtn">Test connessione</button>
       <button id="syncCancelBtn">Annulla</button>
-      <button id="syncSaveBtn" class="primary">Salva</button>
+      <button id="syncSaveBtn" class="primary">Sincronizza ora</button>
     </div>
   </div>
 </div>
@@ -3366,33 +3365,30 @@ function setupModal() {
 // SYNC GOOGLE SHEETS via Apps Script
 // =============================================================================
 
-// URL endpoint sync di default. Può essere:
+// =============================================================================
+// CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
+// =============================================================================
+// URL endpoint sync e secret sono definiti QUI. L'app li usa SEMPRE, ignorando
+// qualsiasi configurazione salvata localmente. Per cambiare endpoint o secret:
+// modifica queste due costanti e ridistribuisci l'index.html. Nessuna impostazione
+// esterna da toccare nel modal.
 //   - Apps Script: https://script.google.com/macros/s/.../exec
-//   - Worker Cloudflare: https://nome.tuoaccount.workers.dev
-// L'app rileva automaticamente quale dei due è e usa il protocollo giusto.
-// Cambia qui (o nel modal Sync) quando passi da Apps Script al Worker.
+//   - Worker Cloudflare: https://nome.tuoaccount.workers.dev  (in tal caso lascia secret = '')
 const SYNC_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwWa54Cqkjfr6zbT0BQQ3OHCovuOCFnkUQAndjQVN_oVc8xWnNSGHhORtuNTGGJiN6Xlg/exec';
-const SYNC_ENABLED_DEFAULT = true; // sync automatica abilitata di default
+const SYNC_SECRET_DEFAULT = 'C8mP2vL9nR4tY3wX7cD4zH6jF1aB8sGq';
+const SYNC_ENABLED_DEFAULT = true; // sync automatica sempre attiva
 
 const SYNC_CONFIG_KEY = 'preparazione_dg_sync_config';
 let syncTimer = null;
 let syncState = { lastSyncAt: null, lastError: null, status: 'idle' };
 
 async function loadSyncConfig() {
-  try {
-    const r = await window.storage.get(SYNC_CONFIG_KEY);
-    if (r && r.value) {
-      const saved = JSON.parse(r.value);
-      // Se l'utente ha salvato qualcosa, ha precedenza
-      return {
-        workerUrl: saved.workerUrl || SYNC_URL_DEFAULT,
-        secret: saved.secret || '',
-        enabled: typeof saved.enabled === 'boolean' ? saved.enabled : SYNC_ENABLED_DEFAULT
-      };
-    }
-  } catch(e) {}
-  // Niente in storage: uso i default hardcoded
-  return { workerUrl: SYNC_URL_DEFAULT, secret: '', enabled: SYNC_ENABLED_DEFAULT };
+  // Config interamente nel codice: niente lettura da storage, niente override esterni.
+  return {
+    workerUrl: SYNC_URL_DEFAULT,
+    secret: SYNC_SECRET_DEFAULT,
+    enabled: SYNC_ENABLED_DEFAULT
+  };
 }
 
 async function saveSyncConfig(cfg) {
@@ -3488,9 +3484,16 @@ function setupSyncSettingsModal() {
   const modal = document.getElementById('syncSettingsModal');
   document.getElementById('syncSettingsBtn').addEventListener('click', async () => {
     const cfg = await loadSyncConfig();
-    document.getElementById('syncWorkerUrl').value = cfg.workerUrl || '';
-    document.getElementById('syncSecret').value = cfg.secret || '';
-    document.getElementById('syncEnabled').value = String(cfg.enabled !== false);
+    const urlEl = document.getElementById('syncWorkerUrl');
+    const secEl = document.getElementById('syncSecret');
+    const enEl = document.getElementById('syncEnabled');
+    // Campi solo informativi: la config è nel codice
+    urlEl.value = cfg.workerUrl || '';
+    urlEl.readOnly = true;
+    secEl.value = cfg.secret || '';
+    secEl.readOnly = true;
+    enEl.value = String(cfg.enabled !== false);
+    enEl.disabled = true;
     const info = document.getElementById('syncLastInfo');
     if (syncState.lastSyncAt) {
       info.textContent = `Ultimo sync: ${syncState.lastSyncAt.toLocaleString('it-IT')}` +
@@ -3507,29 +3510,11 @@ function setupSyncSettingsModal() {
 
   document.getElementById('syncCancelBtn').addEventListener('click', () => modal.classList.remove('show'));
 
-  // Riempie il campo URL con l'URL predefinito hardcoded nel codice (SYNC_URL_DEFAULT)
-  document.getElementById('syncUseDefaultBtn').addEventListener('click', () => {
-    document.getElementById('syncWorkerUrl').value = SYNC_URL_DEFAULT;
-    showToast('URL impostato al predefinito. Premi Salva per confermare.', 'info', 3500);
-  });
-
+  // "Salva" ora è "Sincronizza ora": forza sync foglio + ricarica codici kit
   document.getElementById('syncSaveBtn').addEventListener('click', async () => {
-    const cfg = {
-      workerUrl: document.getElementById('syncWorkerUrl').value.trim(),
-      secret: document.getElementById('syncSecret').value,
-      enabled: document.getElementById('syncEnabled').value === 'true'
-    };
-    await saveSyncConfig(cfg);
     modal.classList.remove('show');
-    showToast('Configurazione sync salvata', 'success');
-    stopSyncTimer();
-    if (cfg.enabled && cfg.workerUrl) {
-      setSyncDot('idle', 'Sync pronto');
-      startSyncTimer();
-      setTimeout(() => syncNow(false), 500);
-    } else {
-      setSyncDot('off', 'Sync off');
-    }
+    await syncNow(false);
+    fetchKitMap(false);
   });
 
   document.getElementById('syncTestBtn').addEventListener('click', async () => {
