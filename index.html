@@ -904,74 +904,142 @@ button.icon-btn.row-action.danger:hover {
 .kit-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 12px;
 }
 
-.kit-item {
-  display: grid;
-  grid-template-columns: 140px 1fr 130px 48px;
-  gap: 12px;
-  align-items: center;
-  padding: 8px 12px;
+/* Gruppo di un articolo */
+.kit-article {
   background: var(--paper);
   border: 1px solid rgba(58, 120, 194, 0.25);
   border-left: 3px solid #3a78c2;
+  padding: 8px 12px;
 }
 
-.kit-item .kit-sku {
+.kit-article-head {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
   font-size: 12px;
   color: var(--ink);
   letter-spacing: 0.04em;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed rgba(58, 120, 194, 0.3);
+}
+
+/* Riga di un codice kit aggiunto */
+.kit-item {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.4fr) 100px 80px 120px 90px 32px;
+  gap: 10px;
+  align-items: center;
+  padding: 5px 0;
 }
 
 .kit-item .kit-codice {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   color: #3a78c2;
-  letter-spacing: 0.04em;
-}
-
-.kit-item .kit-select {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  font-size: 13px;
-  color: #3a78c2;
-  letter-spacing: 0.04em;
-  background: #fff;
-  border: 1px solid rgba(58, 120, 194, 0.45);
-  border-radius: 8px;
-  padding: 4px 8px;
-  cursor: pointer;
-  max-width: 100%;
-}
-
-.kit-item .kit-select:focus {
-  outline: none;
-  border-color: #3a78c2;
-  box-shadow: 0 0 0 2px rgba(58, 120, 194, 0.18);
+  letter-spacing: 0.03em;
 }
 
 .kit-item .kit-perborsa {
   font-family: 'Manrope', sans-serif;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 11px;
   color: #2c5f9e;
   text-align: right;
 }
 
-.kit-item .kit-qta {
+.kit-item .kit-min {
   font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 11px;
   color: var(--ink-muted);
   text-align: right;
 }
 
+.kit-item .kit-qta-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Manrope', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--ink-muted);
+  justify-content: flex-end;
+}
+
+.kit-item .kit-qta-input {
+  width: 64px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--ink);
+  text-align: center;
+  background: #fff;
+  border: 1px solid rgba(58, 120, 194, 0.45);
+  border-radius: 8px;
+  padding: 4px 6px;
+}
+
+.kit-item .kit-qta-input:focus {
+  outline: none;
+  border-color: #3a78c2;
+  box-shadow: 0 0 0 2px rgba(58, 120, 194, 0.18);
+}
+
+.kit-item .kit-fte {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  font-size: 13px;
+  color: #1a8a5a;
+  text-align: right;
+}
+
+/* Controllo per aggiungere un codice */
+.kit-add {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.kit-add-select {
+  flex: 1;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 12px;
+  color: #3a78c2;
+  background: #fff;
+  border: 1px solid rgba(58, 120, 194, 0.45);
+  border-radius: 8px;
+  padding: 6px 8px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.kit-add-select:focus {
+  outline: none;
+  border-color: #3a78c2;
+  box-shadow: 0 0 0 2px rgba(58, 120, 194, 0.18);
+}
+
+.kit-add-btn {
+  white-space: nowrap;
+  background: rgba(58, 120, 194, 0.12) !important;
+  color: #2c5f9e !important;
+  border: 1px solid rgba(58, 120, 194, 0.4) !important;
+  font-weight: 700 !important;
+}
+
+.kit-add-btn:hover {
+  background: #3a78c2 !important;
+  color: #fff !important;
+}
+
 .kit-empty {
-  padding: 8px 12px;
+  padding: 6px 0;
   color: var(--ink-muted);
   font-size: 12px;
 }
@@ -1822,7 +1890,8 @@ button.link-btn:hover {
 // =============================================================================
 // COSTANTI
 // =============================================================================
-const MINUTI_PER_UNITA = 450; // 1 unità = 450 min (≈ 1 giornata produttiva netta)
+const MINUTI_PER_UNITA = 450; // 1 unità = 450 min (≈ 1 giornata produttiva netta) — usato per le Richieste
+const FTE_DIVISORE = 480;     // FTE codice kit = minuti × quantità × kit/borsa ÷ 480
 const GIORNI_BLOCCO = 2;       // blocco di 2 giorni lavorativi
 const UNITA_PER_PERSONA = 2;   // 1 persona = 2 unità in un blocco da 2 gg
 
@@ -2005,8 +2074,19 @@ function seedData() {
 // =============================================================================
 // CALCOLI PER BLOCCO
 // =============================================================================
+// FTE di una riga articolo = somma sui suoi codici kit di (minuti × quantità × kit/borsa ÷ 480)
 function calcRowUnita(row) {
-  return (parseNum(row.minuti) * parseNum(row.quantita)) / MINUTI_PER_UNITA;
+  const available = lookupKit(row.codice); // [{codiceC, kitE, desc, minuti}]
+  let fte = 0;
+  (row.kitItems || []).forEach(it => {
+    const info = available.find(a => a.codiceC === it.codiceC);
+    if (!info) return;
+    const min = parseNum(info.minuti);
+    const kitE = parseNum(info.kitE);
+    const q = parseNum(it.quantita);
+    fte += (min * q * kitE) / FTE_DIVISORE;
+  });
+  return fte;
 }
 
 function calcRequestUnita(req) {
@@ -2020,8 +2100,14 @@ function calcBlockTotals(block) {
   let minutiTot = 0;
   block.rows.forEach(r => {
     unitaTot += calcRowUnita(r);
-    quantitaTot += parseNum(r.quantita);
-    minutiTot += parseNum(r.minuti) * parseNum(r.quantita);
+    // Quantità totale = somma delle quantità dei codici kit della riga
+    (r.kitItems || []).forEach(it => {
+      const q = parseNum(it.quantita);
+      quantitaTot += q;
+      const available = lookupKit(r.codice);
+      const info = available.find(a => a.codiceC === it.codiceC);
+      if (info) minutiTot += parseNum(info.minuti) * q * parseNum(info.kitE);
+    });
   });
   const requests = block.requests || [];
   let minutiRichieste = 0;
@@ -2190,7 +2276,6 @@ function renderBlock(block) {
         <td class="cell-descrizione locked" data-field="descrizione">${escapeHtml(r.descrizione)}</td>
         <td class="cell-minuti locked" data-field="minuti">${fmtNum(r.minuti)}</td>
         <td class="cell-bollettino editable ${r.highlight ? 'highlight' : ''}" data-field="bollettino" contenteditable="true">${escapeHtml(r.bollettino)}</td>
-        <td class="cell-quantita editable" data-field="quantita" contenteditable="true">${fmtInt(r.quantita)}</td>
         <td class="cell-note editable" data-field="note" contenteditable="true">${escapeHtml(r.note)}</td>
         <td class="cell-actions">
           <button class="icon-btn row-action" data-action="toggle-highlight" data-row-idx="${idx}" title="Evidenzia riga">★</button>
@@ -2200,38 +2285,51 @@ function renderBlock(block) {
     `;
   }).join('');
 
-  // Righe kit: solo articoli con quantità > 0 che hanno almeno un codice nel foglio kit
-  const kitRows = block.rows
-    .map((r, idx) => ({ r, idx }))
-    .filter(({ r }) => parseNum(r.quantita) > 0)
-    .map(({ r, idx }) => {
-      const arr = lookupKit(r.codice);
-      if (!arr || arr.length === 0) return null;
-      // codice scelto: r.kitCodice se ancora valido, altrimenti il primo della lista
-      const chosen = (r.kitCodice && arr.some(x => x.codiceC === r.kitCodice))
-        ? r.kitCodice : arr[0].codiceC;
-      const match = arr.find(x => x.codiceC === chosen) || arr[0];
-      return { idx, sku: r.codice, arr, chosen, kitE: match.kitE, qta: parseNum(r.quantita) };
-    })
-    .filter(Boolean);
+  // Sezione Codici Kit: per ogni articolo, la lista dei codici aggiunti (con quantità)
+  // + un menu per aggiungerne altri. FTE per codice = minuti × quantità × kit/borsa ÷ 480.
+  let kitArticlesCount = 0;
+  const kitSectionHtml = block.rows.map((r, rowIdx) => {
+    if (!r.codice) return '';
+    const available = lookupKit(r.codice); // [{codiceC, kitE, desc, minuti}]
+    const items = r.kitItems || [];
+    if (available.length === 0 && items.length === 0) return '';
+    kitArticlesCount++;
 
-  const kitHtml = kitRows.length === 0
-    ? '<div class="kit-empty">Nessun codice kit. Compaiono qui gli articoli con quantità maggiore di 0 presenti nel foglio kit.</div>'
-    : kitRows.map(k => {
-        // Se l'articolo ha più codici → tendina; se ne ha uno solo → testo
-        const codiceCell = k.arr.length > 1
-          ? `<select class="kit-select" data-row-idx="${k.idx}">
-               ${k.arr.map(opt => `<option value="${escapeHtml(opt.codiceC)}"${opt.codiceC === k.chosen ? ' selected' : ''}>${escapeHtml(opt.codiceC)}${opt.desc ? ' — ' + escapeHtml(opt.desc) : ''}</option>`).join('')}
-             </select>`
-          : `<span class="kit-codice">${escapeHtml(k.chosen)}${(k.arr[0] && k.arr[0].desc) ? ' — ' + escapeHtml(k.arr[0].desc) : ''}</span>`;
-        return `
-        <div class="kit-item">
-          <span class="kit-sku">${escapeHtml(k.sku)}</span>
-          ${codiceCell}
-          <span class="kit-perborsa">${escapeHtml(k.kitE)} kit/borsa</span>
-          <span class="kit-qta">×${fmtInt(k.qta)}</span>
-        </div>`;
-      }).join('');
+    const itemsHtml = items.length === 0
+      ? '<div class="kit-empty">Nessun codice aggiunto. Usa il menu qui sotto.</div>'
+      : items.map((it, itIdx) => {
+          const info = available.find(a => a.codiceC === it.codiceC) || { kitE: '', desc: '', minuti: '' };
+          const kitE = parseNum(info.kitE);
+          const min = parseNum(info.minuti);
+          const q = parseNum(it.quantita);
+          const fte = (min * q * kitE) / FTE_DIVISORE;
+          return `
+            <div class="kit-item">
+              <span class="kit-codice">${escapeHtml(it.codiceC)}${info.desc ? ' — ' + escapeHtml(info.desc) : ''}</span>
+              <span class="kit-perborsa">${escapeHtml(String(info.kitE || ''))} kit/borsa</span>
+              <span class="kit-min">${fmtNum(min)} min</span>
+              <span class="kit-qta-wrap">Qtà <input type="text" inputmode="numeric" class="kit-qta-input" data-row-idx="${rowIdx}" data-item-idx="${itIdx}" value="${fmtInt(q)}"></span>
+              <span class="kit-fte">${fmtNum(fte)} FTE</span>
+              <button class="icon-btn row-action danger" data-action="delete-kit" data-row-idx="${rowIdx}" data-item-idx="${itIdx}" title="Rimuovi codice">✕</button>
+            </div>`;
+        }).join('');
+
+    const addControl = available.length > 0
+      ? `<div class="kit-add">
+           <select class="kit-add-select" data-row-idx="${rowIdx}">
+             ${available.map(a => `<option value="${escapeHtml(a.codiceC)}">${escapeHtml(a.codiceC)}${a.desc ? ' — ' + escapeHtml(a.desc) : ''}</option>`).join('')}
+           </select>
+           <button class="icon-btn kit-add-btn" data-action="add-kit" data-row-idx="${rowIdx}">+ Aggiungi codice</button>
+         </div>`
+      : '';
+
+    return `
+      <div class="kit-article">
+        <div class="kit-article-head">${escapeHtml(r.codice)}${r.descrizione ? ' — ' + escapeHtml(r.descrizione) : ''}</div>
+        ${itemsHtml}
+        ${addControl}
+      </div>`;
+  }).join('');
 
   return `
     <section class="block ${confirmed ? '' : 'unconfirmed'}" data-block-id="${block.id}">
@@ -2257,7 +2355,7 @@ function renderBlock(block) {
           <colgroup>
             <col class="col-week"><col class="col-unita"><col class="col-codice">
             <col class="col-descrizione"><col class="col-minuti"><col class="col-bollettino">
-            <col class="col-quantita"><col class="col-note"><col class="col-actions">
+            <col class="col-note"><col class="col-actions">
           </colgroup>
           <thead>
             <tr>
@@ -2267,7 +2365,6 @@ function renderBlock(block) {
               <th class="col-descrizione">Descrizione Articolo</th>
               <th class="col-minuti">Minuti</th>
               <th class="col-bollettino">OP</th>
-              <th class="col-quantita">Quantità</th>
               <th class="col-note">Note</th>
               <th class="col-actions"></th>
             </tr>
@@ -2278,11 +2375,11 @@ function renderBlock(block) {
         <div class="kit-section">
           <div class="kit-header">
             <span class="kit-title">Codici Kit</span>
-            <span class="kit-count">${kitRows.length === 0
-              ? 'Nessun codice'
-              : `${kitRows.length} ${kitRows.length === 1 ? 'codice' : 'codici'}`}</span>
+            <span class="kit-count">${kitArticlesCount === 0
+              ? 'Nessun articolo con codici'
+              : `${kitArticlesCount} ${kitArticlesCount === 1 ? 'articolo' : 'articoli'}`}</span>
           </div>
-          <div class="kit-list">${kitHtml}</div>
+          <div class="kit-list">${kitSectionHtml || '<div class="kit-empty">Nessun codice kit. Aggiungi un articolo presente nel foglio kit.</div>'}</div>
         </div>
 
         <div class="requests-section">
@@ -2743,8 +2840,10 @@ async function applyArticleToRow(articleData) {
   if (!block) return;
 
   if (state.picker.rowIdx != null && block.rows[state.picker.rowIdx]) {
-    // Modalità modifica: sostituisco solo i 3 campi articolo, preservo bollettino/quantita/note/highlight
+    // Modalità modifica: sostituisco solo i campi articolo, preservo OP/note/highlight
     const row = block.rows[state.picker.rowIdx];
+    // Se cambia l'articolo, i codici kit precedenti non valgono più → li azzero
+    if (row.codice !== articleData.codice) row.kitItems = [];
     row.codice = articleData.codice;
     row.descrizione = articleData.descrizione;
     row.minuti = articleData.minuti;
@@ -2758,8 +2857,8 @@ async function applyArticleToRow(articleData) {
       descrizione: articleData.descrizione,
       minuti: articleData.minuti,
       bollettino: '',
-      quantita: 0,
       note: '',
+      kitItems: [],
       highlight: false
     });
     closeArticlePicker();
@@ -2946,9 +3045,10 @@ function setupBlocksDelegation() {
     const blockId = blockEl.dataset.blockId;
     const rowIdx = btn.dataset.rowIdx != null ? parseInt(btn.dataset.rowIdx) : null;
     const requestIdx = btn.dataset.requestIdx != null ? parseInt(btn.dataset.requestIdx) : null;
+    const itemIdx = btn.dataset.itemIdx != null ? parseInt(btn.dataset.itemIdx) : null;
 
     // Lascio scattare un eventuale blur per salvare l'edit in corso
-    setTimeout(() => handleAction(blockId, action, rowIdx, requestIdx), 0);
+    setTimeout(() => handleAction(blockId, action, rowIdx, requestIdx, itemIdx), 0);
   });
 
   // Click sulla cella codice → apre il picker per quella riga (modalità modifica)
@@ -2986,22 +3086,23 @@ function setupBlocksDelegation() {
     }
   });
 
-  // Cambio del codice kit dalla tendina → salva la scelta nella riga
+  // Cambio quantità su un codice kit
   container.addEventListener('change', (e) => {
-    const sel = e.target.closest('select.kit-select');
-    if (!sel) return;
-    const blockEl = sel.closest('.block');
+    const inp = e.target.closest('input.kit-qta-input');
+    if (!inp) return;
+    const blockEl = inp.closest('.block');
     if (!blockEl) return;
     const blockId = blockEl.dataset.blockId;
-    const rowIdx = parseInt(sel.dataset.rowIdx);
+    const rowIdx = parseInt(inp.dataset.rowIdx);
+    const itemIdx = parseInt(inp.dataset.itemIdx);
     const block = state.blocks.find(b => b.id === blockId);
-    if (!block || !block.rows[rowIdx]) return;
-    block.rows[rowIdx].kitCodice = sel.value;
+    if (!block || !block.rows[rowIdx] || !block.rows[rowIdx].kitItems || !block.rows[rowIdx].kitItems[itemIdx]) return;
+    block.rows[rowIdx].kitItems[itemIdx].quantita = parseNum(inp.value);
     persistAndRender();
   });
 }
 
-async function handleAction(blockId, action, rowIdx, requestIdx) {
+async function handleAction(blockId, action, rowIdx, requestIdx, itemIdx) {
   // Azioni globali che non richiedono un blocco
   if (action === 'new-block') {
     openNewBlockModal();
@@ -3010,6 +3111,27 @@ async function handleAction(blockId, action, rowIdx, requestIdx) {
 
   const block = state.blocks.find(b => b.id === blockId);
   if (!block) return;
+
+  if (action === 'add-kit') {
+    // Aggiunge un codice kit alla riga articolo (dal menu a tendina di quella riga)
+    const row = block.rows[rowIdx];
+    if (!row) return;
+    const blockEl = document.querySelector(`.block[data-block-id="${blockId}"]`);
+    const sel = blockEl ? blockEl.querySelector(`.kit-add-select[data-row-idx="${rowIdx}"]`) : null;
+    const code = sel ? sel.value : '';
+    if (!code) { showToast('Nessun codice disponibile da aggiungere', 'error'); return; }
+    if (!row.kitItems) row.kitItems = [];
+    row.kitItems.push({ codiceC: code, quantita: 0 });
+    await persistAndRender();
+    return;
+  }
+  else if (action === 'delete-kit') {
+    const row = block.rows[rowIdx];
+    if (!row || !row.kitItems || itemIdx == null || !row.kitItems[itemIdx]) return;
+    row.kitItems.splice(itemIdx, 1);
+    await persistAndRender();
+    return;
+  }
 
   if (action === 'add-row') {
     // Apro sempre il picker — il catalogo embedded è sempre presente.
@@ -3374,7 +3496,7 @@ function setupModal() {
 // esterna da toccare nel modal.
 //   - Apps Script: https://script.google.com/macros/s/.../exec
 //   - Worker Cloudflare: https://nome.tuoaccount.workers.dev  (in tal caso lascia secret = '')
-const SYNC_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwWa54Cqkjfr6zbT0BQQ3OHCovuOCFnkUQAndjQVN_oVc8xWnNSGHhORtuNTGGJiN6Xlg/exec';
+const SYNC_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbwJCQn2X4nBXhoQlAxj0g5UwzdVZIbwHYd8AY85WNX8t97YExa0A1_M-6Njhr6y5CHvPQ/exec';
 const SYNC_SECRET_DEFAULT = 'C8mP2vL9nR4tY3wX7cD4zH6jF1aB8sGq';
 const SYNC_ENABLED_DEFAULT = true; // sync automatica sempre attiva
 
