@@ -2149,7 +2149,7 @@ async function loadBlocks() {
   } catch (e) {
     // chiave non esistente o errore
   }
-  if (!blocks) blocks = seedData();
+  if (!blocks) blocks = []; // niente dati demo: se vuoto, init() recupera dal foglio (backup)
   // Retrocompatibilità: blocchi senza campo confirmed sono considerati confermati
   blocks.forEach(b => {
     if (b.confirmed === undefined) b.confirmed = true;
@@ -3641,11 +3641,38 @@ function setSyncDot(status, label) {
   if (text && label) text.textContent = label;
 }
 
+// Recupera i blocchi dal backup sul foglio (usato all'avvio se il browser è vuoto)
+async function fetchBlocksFromSheet() {
+  try {
+    const cfg = await loadSyncConfig();
+    if (!cfg.workerUrl) return null;
+    const base = cfg.workerUrl.replace(/\/$/, '');
+    const isAppsScript = /script\.google\.com/.test(base);
+    const url = isAppsScript
+      ? `${base}?action=blocks&secret=${encodeURIComponent(cfg.secret || '')}`
+      : `${base}/blocks?secret=${encodeURIComponent(cfg.secret || '')}`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data && data.ok && Array.isArray(data.blocks)) return data.blocks;
+  } catch (e) {
+    console.warn('Recupero blocchi dal foglio fallito:', e);
+  }
+  return null;
+}
+
 async function syncNow(silent = false) {
   const cfg = await loadSyncConfig();
   if (!cfg.enabled || !cfg.workerUrl) {
     setSyncDot('off', 'Sync off');
     return { skipped: true };
+  }
+
+  // SICUREZZA: non sovrascrivere mai il foglio con zero blocchi.
+  // Evita che un browser partito vuoto cancelli i dati veri sul foglio.
+  if (!state.blocks || state.blocks.length === 0) {
+    setSyncDot('idle', 'Sync pronto');
+    if (!silent) showToast('Sync saltata: nessun blocco da inviare (per sicurezza non svuoto il foglio).', 'info', 4500);
+    return { skipped: true, reason: 'empty' };
   }
 
   setSyncDot('syncing', 'Sync…');
@@ -3782,6 +3809,17 @@ async function init() {
     state.blocks = await loadBlocks();
     state.catalog = await loadCatalogFromStorage();
     state.kitMap = await loadKitMapFromStorage();
+
+    // Se il browser è vuoto (cache svuotata / altro dispositivo / nuovo deploy),
+    // recupero i blocchi dal backup sul foglio invece di partire vuoto.
+    if (!state.blocks || state.blocks.length === 0) {
+      const fromSheet = await fetchBlocksFromSheet();
+      if (fromSheet && fromSheet.length > 0) {
+        state.blocks = fromSheet;
+        await saveBlocks(state.blocks);
+        showToast(`Blocchi recuperati dal foglio: ${fromSheet.length}`, 'success', 4000);
+      }
+    }
 
     // Se lo storage è vuoto, popolo subito col catalogo embedded
     // (311 articoli dal foglio "Registro Tempi Ciclo DG")
