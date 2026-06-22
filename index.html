@@ -2671,6 +2671,11 @@ async function handleFabAdd(blockId) {
 }
 
 function render() {
+  // Memorizzo la posizione di scroll per ripristinarla dopo il ridisegno
+  const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  const containerEl = document.getElementById('blocksContainer');
+  const containerScroll = containerEl ? containerEl.scrollTop : 0;
+
   renderHeader();
   const blocks = getFilteredBlocks();
   const container = document.getElementById('blocksContainer');
@@ -2697,6 +2702,10 @@ function render() {
     container.innerHTML = blocks.map(renderBlock).join('');
     applyFabPositions();
   }
+
+  // Ripristino lo scroll: il ridisegno non deve farmi saltare in cima
+  window.scrollTo(0, scrollY);
+  if (container) container.scrollTop = containerScroll;
 }
 
 // =============================================================================
@@ -3791,7 +3800,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'v29 · resta su ultima modifica';
+const APP_VERSION = 'v30 · scroll fisso';
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
