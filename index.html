@@ -3547,6 +3547,7 @@ let _syncDebounceTimer = null;
 async function persistAndRender() {
   lastEditAt = Date.now(); // segna la modifica: il polling non sovrascrive mentre si scrive
   await saveBlocks(state.blocks);
+  await setPending(true); // modifica locale non ancora inviata: al refresh deve vincere il locale
   render();
   // Sync ritardata di 3 secondi: se l'utente fa più modifiche in rapida successione, ne facciamo una sola
   if (_syncDebounceTimer) clearTimeout(_syncDebounceTimer);
@@ -3800,7 +3801,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'v30 · scroll fisso';
+const APP_VERSION = 'v31 · salvataggio sicuro';
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
@@ -3876,6 +3877,17 @@ function scrollToLastBlock() {
   if (!id) return;
   const el = document.querySelector(`[data-block-id="${id}"]`);
   if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
+}
+
+// Modifiche locali fatte ma non ancora sincronizzate sul foglio.
+// Finché questo flag è true, al ricaricamento VINCE il locale (non lo sovrascrivo col foglio).
+const PENDING_KEY = 'preparazione_dg_pending';
+async function setPending(v) {
+  try { await window.storage.set(PENDING_KEY, v ? '1' : '0'); } catch (e) {}
+}
+async function loadPending() {
+  try { const r = await window.storage.get(PENDING_KEY); return r && r.value === '1'; } catch (e) {}
+  return false;
 }
 
 function syncUrlFor(cfg, action) {
@@ -3995,6 +4007,7 @@ async function syncNow(silent = false) {
     syncState.lastError = null;
     syncState.status = 'success';
     setSyncDot('success', 'Sync ✓');
+    await setPending(false); // le modifiche locali sono ora sul foglio
     // Allineo la revisione locale a quella restituita dal foglio (così il mio
     // salvataggio non viene riletto come "modifica di un altro dispositivo")
     if (data && typeof data.rev === 'number') {
@@ -4030,8 +4043,10 @@ async function initSync() {
   if (cfg.enabled && cfg.workerUrl) {
     setSyncDot('idle', 'Sync pronto');
     startSyncTimer();
-    // Primo sync dopo 5 secondi dall'avvio
-    setTimeout(() => syncNow(true), 5000);
+    // Se ho modifiche locali non ancora inviate, le spingo subito sul foglio;
+    // altrimenti faccio il primo sync dopo 5 secondi.
+    const pendingLocal = await loadPending();
+    setTimeout(() => syncNow(true), pendingLocal ? 800 : 5000);
   } else {
     setSyncDot('off', 'Sync off');
   }
@@ -4051,12 +4066,15 @@ async function init() {
 
     // Multi-dispositivo: confronto col foglio. Uso il foglio se il browser è vuoto
     // oppure se sul foglio c'è una revisione più recente (modifiche da un altro dispositivo).
+    // MA se ho modifiche locali non ancora inviate (pending), vince il locale: non lo sovrascrivo.
+    const pendingLocal = await loadPending();
     const sheetState = await fetchSheetState();
     if (sheetState) {
       const localEmpty = !state.blocks || state.blocks.length === 0;
-      if (localEmpty || sheetState.rev > knownRev) {
+      if (localEmpty || (sheetState.rev > knownRev && !pendingLocal)) {
         state.blocks = sheetState.blocks || [];
         await saveBlocks(state.blocks);
+        await setPending(false);
       }
       knownRev = Math.max(knownRev, sheetState.rev);
       await saveKnownRev(knownRev);
