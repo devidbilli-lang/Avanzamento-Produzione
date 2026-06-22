@@ -3533,6 +3533,7 @@ function handleEdit(blockId, rowIdx, field, newValue) {
 
 let _syncDebounceTimer = null;
 async function persistAndRender() {
+  lastEditAt = Date.now(); // segna la modifica: il polling non sovrascrive mentre si scrive
   await saveBlocks(state.blocks);
   render();
   // Sync ritardata di 3 secondi: se l'utente fa più modifiche in rapida successione, ne facciamo una sola
@@ -3787,7 +3788,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'v26 · bottone + tondo';
+const APP_VERSION = 'v27 · multi-dispositivo';
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
@@ -3826,24 +3827,85 @@ function setSyncDot(status, label) {
   if (text && label) text.textContent = label;
 }
 
-// Recupera i blocchi dal backup sul foglio (usato all'avvio se il browser è vuoto)
-async function fetchBlocksFromSheet() {
+// ===== MULTI-DISPOSITIVO: revisione, stato dal foglio, polling =====
+const BLOCKS_REV_KEY = 'preparazione_dg_blocks_rev';
+let knownRev = 0;       // ultima revisione vista/sincronizzata
+let lastEditAt = 0;     // momento dell'ultima modifica locale (per non sovrascrivere mentre si scrive)
+let pollTimer = null;
+
+async function loadKnownRev() {
+  try {
+    const r = await window.storage.get(BLOCKS_REV_KEY);
+    if (r && r.value != null) { const n = parseInt(r.value, 10); return isNaN(n) ? 0 : n; }
+  } catch (e) {}
+  return 0;
+}
+async function saveKnownRev(rev) {
+  try { await window.storage.set(BLOCKS_REV_KEY, String(rev)); } catch (e) {}
+}
+
+function syncUrlFor(cfg, action) {
+  const base = cfg.workerUrl.replace(/\/$/, '');
+  const isAppsScript = /script\.google\.com/.test(base);
+  return isAppsScript
+    ? `${base}?action=${action}&secret=${encodeURIComponent(cfg.secret || '')}`
+    : `${base}/${action}?secret=${encodeURIComponent(cfg.secret || '')}`;
+}
+
+// Stato completo dal foglio: { blocks, rev }
+async function fetchSheetState() {
   try {
     const cfg = await loadSyncConfig();
     if (!cfg.workerUrl) return null;
-    const base = cfg.workerUrl.replace(/\/$/, '');
-    const isAppsScript = /script\.google\.com/.test(base);
-    const url = isAppsScript
-      ? `${base}?action=blocks&secret=${encodeURIComponent(cfg.secret || '')}`
-      : `${base}/blocks?secret=${encodeURIComponent(cfg.secret || '')}`;
-    const res = await fetch(url);
+    const res = await fetch(syncUrlFor(cfg, 'blocks'));
     const data = await res.json();
-    if (data && data.ok && Array.isArray(data.blocks)) return data.blocks;
-  } catch (e) {
-    console.warn('Recupero blocchi dal foglio fallito:', e);
-  }
+    if (data && data.ok && Array.isArray(data.blocks)) {
+      return { blocks: data.blocks, rev: typeof data.rev === 'number' ? data.rev : 0 };
+    }
+  } catch (e) { console.warn('fetchSheetState fallita:', e); }
   return null;
 }
+
+// Solo la revisione (leggero, per il polling)
+async function fetchSheetRev() {
+  try {
+    const cfg = await loadSyncConfig();
+    if (!cfg.workerUrl) return null;
+    const res = await fetch(syncUrlFor(cfg, 'rev'));
+    const data = await res.json();
+    if (data && data.ok && typeof data.rev === 'number') return data.rev;
+  } catch (e) { /* silenzioso */ }
+  return null;
+}
+
+// Vero se l'utente sta scrivendo / un modal è aperto / modifica appena fatta
+function isMidEdit() {
+  const ae = document.activeElement;
+  if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'SELECT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)) {
+    if (ae.closest('.block') || ae.closest('[class*="modal"]')) return true;
+  }
+  if (Date.now() - lastEditAt < 8000) return true;
+  if (document.querySelector('.modal-backdrop.show, .modal.show, .picker-modal.show')) return true;
+  return false;
+}
+
+function startPollTimer() {
+  stopPollTimer();
+  pollTimer = setInterval(async () => {
+    if (isMidEdit() || syncState.status === 'syncing') return;
+    const rev = await fetchSheetRev();
+    if (rev == null || rev <= knownRev) return;
+    // C'è una versione più recente da un altro dispositivo → la carico
+    const sheetState = await fetchSheetState();
+    if (!sheetState || isMidEdit()) return;
+    state.blocks = sheetState.blocks || [];
+    await saveBlocks(state.blocks);
+    knownRev = Math.max(knownRev, sheetState.rev);
+    await saveKnownRev(knownRev);
+    render();
+  }, 25000);
+}
+function stopPollTimer() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
 
 async function syncNow(silent = false) {
   const cfg = await loadSyncConfig();
@@ -3899,6 +3961,12 @@ async function syncNow(silent = false) {
     syncState.lastError = null;
     syncState.status = 'success';
     setSyncDot('success', 'Sync ✓');
+    // Allineo la revisione locale a quella restituita dal foglio (così il mio
+    // salvataggio non viene riletto come "modifica di un altro dispositivo")
+    if (data && typeof data.rev === 'number') {
+      knownRev = Math.max(knownRev, data.rev);
+      await saveKnownRev(knownRev);
+    }
     return data;
   } catch (err) {
     console.error('Sync error:', err);
@@ -3944,15 +4012,19 @@ async function init() {
     state.blocks = await loadBlocks();
     state.catalog = await loadCatalogFromStorage();
     state.kitMap = await loadKitMapFromStorage();
+    knownRev = await loadKnownRev();
 
-    // Se il browser è vuoto (cache svuotata / altro dispositivo / nuovo deploy),
-    // recupero i blocchi dal backup sul foglio invece di partire vuoto.
-    if (!state.blocks || state.blocks.length === 0) {
-      const fromSheet = await fetchBlocksFromSheet();
-      if (fromSheet && fromSheet.length > 0) {
-        state.blocks = fromSheet;
+    // Multi-dispositivo: confronto col foglio. Uso il foglio se il browser è vuoto
+    // oppure se sul foglio c'è una revisione più recente (modifiche da un altro dispositivo).
+    const sheetState = await fetchSheetState();
+    if (sheetState) {
+      const localEmpty = !state.blocks || state.blocks.length === 0;
+      if (localEmpty || sheetState.rev > knownRev) {
+        state.blocks = sheetState.blocks || [];
         await saveBlocks(state.blocks);
       }
+      knownRev = Math.max(knownRev, sheetState.rev);
+      await saveKnownRev(knownRev);
     }
 
     // Se lo storage è vuoto, popolo subito col catalogo embedded
@@ -3974,6 +4046,7 @@ async function init() {
     setupRequestModal();
     setupSyncSettingsModal();
     await initSync();
+    startPollTimer(); // multi-dispositivo: controlla aggiornamenti dal foglio ogni ~25s
     // Auto-sync con tutti i fogli in background (silenzioso): codici kit + catalogo
     fetchKitMap(true);
     refreshCatalog(true);
