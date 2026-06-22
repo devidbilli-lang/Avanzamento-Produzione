@@ -3356,6 +3356,7 @@ function setupBlocksDelegation() {
       const block = state.blocks.find(b => b.id === blockId);
       if (!block || !block.rows[rowIdx] || !block.rows[rowIdx].kitItems || !block.rows[rowIdx].kitItems[itemIdx]) return;
       block.rows[rowIdx].kitItems[itemIdx].quantita = parseNum(inp.value);
+      markBlockModified(blockId);
       persistAndRender();
       return;
     }
@@ -3370,6 +3371,7 @@ function setupBlocksDelegation() {
       const block = state.blocks.find(b => b.id === blockId);
       if (!block || !block.rows[rowIdx] || !block.rows[rowIdx].kitItems || !block.rows[rowIdx].kitItems[itemIdx]) return;
       block.rows[rowIdx].kitItems[itemIdx].codiceC = sel.value;
+      markBlockModified(blockId);
       persistAndRender();
       return;
     }
@@ -3407,6 +3409,7 @@ async function handleAction(blockId, action, rowIdx, requestIdx, itemIdx) {
 
   const block = state.blocks.find(b => b.id === blockId);
   if (!block) return;
+  markBlockModified(blockId);
 
   if (action === 'add-kit') {
     // Aggiunge un altro codice all'articolo: primo codice non ancora usato
@@ -3788,7 +3791,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'v28 · sync 12s';
+const APP_VERSION = 'v29 · resta su ultima modifica';
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
@@ -3843,6 +3846,27 @@ async function loadKnownRev() {
 }
 async function saveKnownRev(rev) {
   try { await window.storage.set(BLOCKS_REV_KEY, String(rev)); } catch (e) {}
+}
+
+// Ricorda l'ultimo blocco modificato, per tornarci dopo un ricaricamento pagina
+const LAST_BLOCK_KEY = 'preparazione_dg_last_block';
+async function saveLastBlock(blockId) {
+  try { await window.storage.set(LAST_BLOCK_KEY, String(blockId || '')); } catch (e) {}
+}
+async function loadLastBlock() {
+  try { const r = await window.storage.get(LAST_BLOCK_KEY); if (r && r.value) return r.value; } catch (e) {}
+  return null;
+}
+function markBlockModified(blockId) {
+  if (!blockId) return;
+  state.lastModifiedBlockId = blockId;
+  saveLastBlock(blockId);
+}
+function scrollToLastBlock() {
+  const id = state.lastModifiedBlockId;
+  if (!id) return;
+  const el = document.querySelector(`[data-block-id="${id}"]`);
+  if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
 }
 
 function syncUrlFor(cfg, action) {
@@ -4014,6 +4038,7 @@ async function init() {
     state.catalog = await loadCatalogFromStorage();
     state.kitMap = await loadKitMapFromStorage();
     knownRev = await loadKnownRev();
+    state.lastModifiedBlockId = await loadLastBlock();
 
     // Multi-dispositivo: confronto col foglio. Uso il foglio se il browser è vuoto
     // oppure se sul foglio c'è una revisione più recente (modifiche da un altro dispositivo).
@@ -4037,6 +4062,8 @@ async function init() {
 
     // Render PRIMA dei setup: se un setup* fallisce, almeno l'UI è visibile
     render();
+    // Dopo un ricaricamento, torno sul blocco dell'ultima modifica
+    setTimeout(scrollToLastBlock, 80);
 
     setupToolbar();
     setupModal();
