@@ -3788,7 +3788,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'v27 · multi-dispositivo';
+const APP_VERSION = 'v28 · sync 12s';
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
@@ -3832,6 +3832,7 @@ const BLOCKS_REV_KEY = 'preparazione_dg_blocks_rev';
 let knownRev = 0;       // ultima revisione vista/sincronizzata
 let lastEditAt = 0;     // momento dell'ultima modifica locale (per non sovrascrivere mentre si scrive)
 let pollTimer = null;
+const POLL_INTERVAL_MS = 12000; // ogni quanto controllo il foglio per modifiche da altri dispositivi (12s)
 
 async function loadKnownRev() {
   try {
@@ -3903,7 +3904,7 @@ function startPollTimer() {
     knownRev = Math.max(knownRev, sheetState.rev);
     await saveKnownRev(knownRev);
     render();
-  }, 25000);
+  }, POLL_INTERVAL_MS);
 }
 function stopPollTimer() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
 
