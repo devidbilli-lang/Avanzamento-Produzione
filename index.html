@@ -3801,7 +3801,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'v31 · salvataggio sicuro';
+const APP_VERSION = 'v32 · elimina definitivo';
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
@@ -3962,11 +3962,15 @@ async function syncNow(silent = false) {
 
   const wasError = syncState.status === 'error';
 
-  // SICUREZZA: non sovrascrivere mai il foglio con zero blocchi.
-  // Evita che un browser partito vuoto cancelli i dati veri sul foglio.
+  // SICUREZZA: di norma non sovrascrivo il foglio con zero blocchi (evita che un
+  // browser partito vuoto cancelli i dati veri). MA se lo svuotamento è una scelta
+  // dell'utente (pending = ha appena eliminato tutto), allora svuoto anche il foglio.
   if (!state.blocks || state.blocks.length === 0) {
-    setSyncDot('idle', 'Sync pronto');
-    return { skipped: true, reason: 'empty' };
+    const intentional = await loadPending();
+    if (!intentional) {
+      setSyncDot('idle', 'Sync pronto');
+      return { skipped: true, reason: 'empty' };
+    }
   }
 
   setSyncDot('syncing', 'Sync…');
@@ -4064,17 +4068,16 @@ async function init() {
     knownRev = await loadKnownRev();
     state.lastModifiedBlockId = await loadLastBlock();
 
-    // Multi-dispositivo: confronto col foglio. Uso il foglio se il browser è vuoto
-    // oppure se sul foglio c'è una revisione più recente (modifiche da un altro dispositivo).
-    // MA se ho modifiche locali non ancora inviate (pending), vince il locale: non lo sovrascrivo.
+    // Multi-dispositivo: confronto col foglio. Adotto il foglio SOLO se non ho
+    // modifiche locali in attesa di invio. Se ho modifiche pendenti — incluso il caso
+    // "ho eliminato tutti i blocchi" (locale vuoto) — vince il locale e non lo sovrascrivo.
     const pendingLocal = await loadPending();
     const sheetState = await fetchSheetState();
     if (sheetState) {
       const localEmpty = !state.blocks || state.blocks.length === 0;
-      if (localEmpty || (sheetState.rev > knownRev && !pendingLocal)) {
+      if (!pendingLocal && (localEmpty || sheetState.rev > knownRev)) {
         state.blocks = sheetState.blocks || [];
         await saveBlocks(state.blocks);
-        await setPending(false);
       }
       knownRev = Math.max(knownRev, sheetState.rev);
       await saveKnownRev(knownRev);
