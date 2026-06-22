@@ -147,6 +147,11 @@ body {
 }
 
 /* === TOOLBAR === */
+.sticky-head {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
 .toolbar {
   background: var(--paper-2);
   padding: 16px 40px;
@@ -155,11 +160,55 @@ body {
   align-items: center;
   gap: 24px;
   border-bottom: 1px solid var(--rule);
-  position: sticky;
-  top: 0;
-  z-index: 50;
   box-shadow: var(--shadow);
 }
+
+/* === BARRA FILTRI COLONNA === */
+.colfilter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 40px;
+  background: var(--paper-2);
+  border-bottom: 1px solid var(--rule);
+  box-shadow: var(--shadow);
+}
+.colfilter-bar[hidden] { display: none; }
+.colfilter-label {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  margin-right: 4px;
+}
+.colfilter-select {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 5px 8px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  max-width: 190px;
+}
+.colfilter-select.active {
+  border-color: var(--gold);
+  background: rgba(167, 133, 70, 0.12);
+  font-weight: 700;
+}
+.colfilter-clear {
+  font-family: inherit;
+  font-size: 12px;
+  padding: 5px 10px;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+  cursor: pointer;
+  font-weight: 700;
+}
+.colfilter-clear:hover { background: var(--paper-2); }
 
 .toolbar-group {
   display: flex;
@@ -1816,6 +1865,7 @@ button.link-btn:hover {
   .app-header { grid-template-columns: 1fr; text-align: center; gap: 12px; padding: 16px 20px; }
   .app-title { font-size: 24px; }
   .toolbar { padding: 12px 20px; flex-wrap: wrap; }
+  .colfilter-bar { padding: 8px 16px; }
   .blocks-container { padding: 20px 16px; }
   .block { grid-template-columns: 60px 1fr 60px; }
   .block-side .date-vertical { font-size: 11px; }
@@ -1868,6 +1918,7 @@ button.link-btn:hover {
   </div>
 </header>
 
+<div class="sticky-head">
 <div class="toolbar">
   <div class="toolbar-group">
     <button id="goToTodayBtn">↓ Vai a Oggi</button>
@@ -1881,6 +1932,8 @@ button.link-btn:hover {
     <button class="filter-btn active" data-filter="month">Ultimo Mese</button>
     <button class="filter-btn" data-filter="all">Tutto Lo Storico</button>
   </div>
+</div>
+<div class="colfilter-bar" id="colFilterBar" hidden></div>
 </div>
 
 <main class="blocks-container" id="blocksContainer">
@@ -2309,7 +2362,8 @@ let state = {
   catalog: [],
   kitMap: {},
   picker: { blockId: null, rowIdx: null, target: 'row', filtered: [], focusedIdx: 0 },
-  requestDraft: { blockId: null, codice: '', descrizione: '', minuti: 0 }
+  requestDraft: { blockId: null, codice: '', descrizione: '', minuti: 0 },
+  colFilters: {}
 };
 
 // =============================================================================
@@ -2432,6 +2486,129 @@ function getFilteredBlocks() {
   return blocks;
 }
 
+// =============================================================================
+// FILTRI COLONNA (tendina per valore, applicati a tutti i blocchi)
+// =============================================================================
+const FILTER_COLS = [
+  { key: 'week',     label: 'Settimana' },
+  { key: 'artcode',  label: 'Codice Art.' },
+  { key: 'artdesc',  label: 'Descr. Art.' },
+  { key: 'code',     label: 'Codice (J/K)' },
+  { key: 'codedesc', label: 'Descr. Codice' },
+  { key: 'kitborsa', label: 'Kit/Borsa' },
+];
+function rowFilterValues(week, r, info, it) {
+  return {
+    week: String(week),
+    artcode: r.codice || '',
+    artdesc: r.descrizione || '',
+    code: it ? (it.codiceC || '') : '',
+    codedesc: info ? (info.desc || '') : '',
+    kitborsa: info ? String(info.kitE || '') : '',
+  };
+}
+function anyColFilterActive() {
+  const f = state.colFilters || {};
+  return FILTER_COLS.some(c => f[c.key] != null && f[c.key] !== '');
+}
+function rowMatchesColFilters(vals) {
+  const f = state.colFilters || {};
+  for (const c of FILTER_COLS) {
+    const sel = f[c.key];
+    if (sel != null && sel !== '' && String(vals[c.key]) !== String(sel)) return false;
+  }
+  return true;
+}
+// Valori distinti per colonna, calcolati sui blocchi attualmente visibili (prima del filtro colonna)
+function computeColFilterOptions(blocks) {
+  const sets = {};
+  FILTER_COLS.forEach(c => sets[c.key] = new Set());
+  (blocks || []).forEach(block => {
+    const week = getWeekNumber(parseISO(block.entryDate));
+    (block.rows || []).forEach(r => {
+      const available = lookupKit(r.codice);
+      const items = r.kitItems || [];
+      const addVals = (vals) => FILTER_COLS.forEach(c => { if (vals[c.key] !== '') sets[c.key].add(vals[c.key]); });
+      if (items.length === 0) {
+        addVals(rowFilterValues(week, r, null, null));
+      } else {
+        items.forEach(it => {
+          const info = available.find(a => a.codiceC === it.codiceC) || {};
+          addVals(rowFilterValues(week, r, info, it));
+        });
+      }
+    });
+  });
+  const opts = {};
+  FILTER_COLS.forEach(c => {
+    opts[c.key] = Array.from(sets[c.key]).sort((a, b) => {
+      const na = parseFloat(a), nb = parseFloat(b);
+      if (!isNaN(na) && !isNaN(nb)) return na - nb;
+      return String(a).localeCompare(String(b), 'it');
+    });
+  });
+  return opts;
+}
+// Vero se il blocco ha almeno una riga che soddisfa i filtri colonna attivi
+function blockHasVisibleColRows(block) {
+  if (!anyColFilterActive()) return true;
+  const week = getWeekNumber(parseISO(block.entryDate));
+  for (const r of (block.rows || [])) {
+    const available = lookupKit(r.codice);
+    const items = r.kitItems || [];
+    if (items.length === 0) {
+      if (rowMatchesColFilters(rowFilterValues(week, r, null, null))) return true;
+    } else {
+      for (const it of items) {
+        const info = available.find(a => a.codiceC === it.codiceC) || {};
+        if (rowMatchesColFilters(rowFilterValues(week, r, info, it))) return true;
+      }
+    }
+  }
+  return false;
+}
+// Costruisce la barra delle tendine (chiamata da render con i blocchi visibili)
+function renderColFilterBar(blocks) {
+  const bar = document.getElementById('colFilterBar');
+  if (!bar) return;
+  if (!blocks || blocks.length === 0) { bar.hidden = true; bar.innerHTML = ''; return; }
+  const opts = computeColFilterOptions(blocks);
+  const f = state.colFilters || {};
+  let html = '<span class="colfilter-label">Filtri colonna</span>';
+  FILTER_COLS.forEach(c => {
+    const cur = f[c.key] || '';
+    const values = opts[c.key].slice();
+    if (cur && !values.includes(cur)) values.unshift(cur); // mantieni selezionato anche se non più nei dati
+    const optionsHtml = ['<option value="">' + escapeHtml(c.label) + ': tutte</option>']
+      .concat(values.map(v => `<option value="${escapeHtml(v)}"${String(v) === String(cur) ? ' selected' : ''}>${escapeHtml(v)}</option>`))
+      .join('');
+    html += `<select class="colfilter-select${cur ? ' active' : ''}" data-colfilter="${c.key}">${optionsHtml}</select>`;
+  });
+  if (anyColFilterActive()) {
+    html += '<button class="colfilter-clear" data-action="clear-colfilters">✕ Pulisci filtri</button>';
+  }
+  bar.innerHTML = html;
+  bar.hidden = false;
+}
+function setupColFilters() {
+  const bar = document.getElementById('colFilterBar');
+  if (!bar) return;
+  bar.addEventListener('change', (e) => {
+    const sel = e.target.closest('[data-colfilter]');
+    if (!sel) return;
+    const key = sel.getAttribute('data-colfilter');
+    if (!state.colFilters) state.colFilters = {};
+    if (sel.value) state.colFilters[key] = sel.value; else delete state.colFilters[key];
+    render();
+  });
+  bar.addEventListener('click', (e) => {
+    if (e.target.closest('[data-action="clear-colfilters"]')) {
+      state.colFilters = {};
+      render();
+    }
+  });
+}
+
 function renderBlock(block) {
   const entry = parseISO(block.entryDate);
   const exit = addWorkingDays(entry, GIORNI_BLOCCO);
@@ -2444,9 +2621,11 @@ function renderBlock(block) {
   const bodyRows = block.rows.map((r, rowIdx) => {
     const available = lookupKit(r.codice); // [{codiceC, kitE, desc, minuti}]
     const items = r.kitItems || [];
+    const filterOn = anyColFilterActive();
 
     // Articolo il cui SKU non ha codici kit nel foglio
     if (items.length === 0) {
+      if (filterOn && !rowMatchesColFilters(rowFilterValues(week, r, null, null))) return '';
       return `
         <tr class="code-row" data-row-idx="${rowIdx}">
           <td class="cell-week">${week}</td>
@@ -2460,6 +2639,7 @@ function renderBlock(block) {
 
     return items.map((it, itIdx) => {
       const info = available.find(a => a.codiceC === it.codiceC) || { kitE: '', desc: '', minuti: '' };
+      if (filterOn && !rowMatchesColFilters(rowFilterValues(week, r, info, it))) return '';
       const kitE = parseNum(info.kitE);
       const min = parseNum(info.minuti);
       const q = parseNum(it.quantita);
@@ -2677,13 +2857,17 @@ function render() {
   const containerScroll = containerEl ? containerEl.scrollTop : 0;
 
   renderHeader();
-  const blocks = getFilteredBlocks();
+  const baseBlocks = getFilteredBlocks();
+  renderColFilterBar(baseBlocks); // tendine costruite sui blocchi visibili (prima del filtro colonna)
+  const blocks = anyColFilterActive() ? baseBlocks.filter(blockHasVisibleColRows) : baseBlocks;
   const container = document.getElementById('blocksContainer');
 
   if (blocks.length === 0) {
     const hasHidden = state.blocks && state.blocks.length > 0 && state.filter === 'month' && !state.search;
     let msg;
-    if (state.search) {
+    if (anyColFilterActive()) {
+      msg = 'Nessuna riga corrisponde ai filtri colonna selezionati.';
+    } else if (state.search) {
       msg = 'Nessun risultato per la ricerca.';
     } else if (hasHidden) {
       msg = `Ci sono ${state.blocks.length} blocchi fuori dall'ultimo mese. Mostra tutto lo storico per vederli.`;
@@ -2693,8 +2877,12 @@ function render() {
     const showAllBtn = hasHidden
       ? `<button class="icon-btn" data-action="show-all" style="padding: 12px 24px; font-size: 13px; margin-right: 10px;">Mostra tutto lo storico</button>`
       : '';
+    const clearFiltersBtn = anyColFilterActive()
+      ? `<button class="icon-btn" data-action="clear-colfilters" style="padding: 12px 24px; font-size: 13px; margin-right: 10px;">✕ Pulisci filtri colonna</button>`
+      : '';
     container.innerHTML = `<div class="empty-state">
       <p style="margin-bottom: 20px;">${msg}</p>
+      ${clearFiltersBtn}
       ${showAllBtn}
       <button class="icon-btn new-block-btn" data-action="new-block" style="padding: 12px 24px; font-size: 13px;">+ Nuovo Blocco</button>
     </div>`;
@@ -3415,6 +3603,11 @@ async function handleAction(blockId, action, rowIdx, requestIdx, itemIdx) {
     render();
     return;
   }
+  if (action === 'clear-colfilters') {
+    state.colFilters = {};
+    render();
+    return;
+  }
 
   const block = state.blocks.find(b => b.id === blockId);
   if (!block) return;
@@ -3801,7 +3994,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'v32 · elimina definitivo';
+const APP_VERSION = 'v33 · filtri colonna';
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
@@ -4103,6 +4296,7 @@ async function init() {
     setupCatalogModal();
     setupRequestModal();
     setupSyncSettingsModal();
+    setupColFilters();
     await initSync();
     startPollTimer(); // multi-dispositivo: controlla aggiornamenti dal foglio ogni ~25s
     // Auto-sync con tutti i fogli in background (silenzioso): codici kit + catalogo
