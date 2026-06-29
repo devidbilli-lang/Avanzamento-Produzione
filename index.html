@@ -3005,8 +3005,19 @@ async function fetchCatalog() {
   if (/^\s*<(!doctype|html)/i.test(csv)) return { ok: false, reason: 'access' };
   const cat = parseCatalogFromCSV(csv);
   if (!cat.length) {
+    // Diagnostica: mostro cosa ha davvero restituito gviz (per capire se è la tab giusta)
+    let sample = '';
+    try {
+      const rows = parseCSV(csv);
+      sample = rows.slice(0, 3)
+        .map(r => (r || []).slice(0, 8).map(c => (c || '').toString().trim()).filter(Boolean).join(' | '))
+        .filter(Boolean)
+        .join('   ⟶   ');
+      if (sample.length > 280) sample = sample.slice(0, 280) + '…';
+      console.warn('DB VALENTANO: prime righe ricevute', rows.slice(0, 5));
+    } catch (e) {}
     console.warn('DB VALENTANO letta ma nessun articolo riconosciuto: controlla i nomi delle intestazioni.');
-    return { ok: false, reason: 'parse' };
+    return { ok: false, reason: 'parse', sample };
   }
   return { ok: true, catalog: cat };
 }
@@ -3038,12 +3049,12 @@ async function refreshCatalog(silent = false) {
   if (!result || !result.ok) {
     const reason = result && result.reason;
     const why =
-      reason === 'parse'  ? 'DB VALENTANO letta ma nessun articolo riconosciuto: controlla i nomi delle intestazioni di colonna' :
+      reason === 'parse'  ? 'DB VALENTANO letta ma intestazioni non riconosciute. Prime righe ricevute → ' + (result.sample || '(vuote)') :
       reason === 'access' ? 'DB VALENTANO non accessibile: condividi il file come "Chiunque con il link"' :
       reason === 'http'   ? `DB VALENTANO non raggiungibile (errore ${result.status})` :
                             'impossibile contattare DB VALENTANO (rete/CORS)';
     // L'avviso di errore appare SEMPRE (anche all'avvio): è il segnale che i dati restano quelli vecchi in cache
-    showToast('Catalogo: ' + why + '. Restano i dati in cache.', 'error', 7000);
+    showToast('Catalogo: ' + why, 'error', reason === 'parse' ? 15000 : 7000);
     updateStatus(`Catalogo in cache: ${state.catalog.length} articoli (lettura DB VALENTANO fallita)`);
     return false;
   }
@@ -4022,7 +4033,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'v35 · catalogo robusto';
+const APP_VERSION = 'v36 · diagnostica catalogo';
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
