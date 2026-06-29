@@ -1944,7 +1944,7 @@ button.link-btn:hover {
 <div class="modal-backdrop" id="newBlockModal">
   <div class="modal">
     <h2>Nuovo Blocco di Produzione</h2>
-    <p class="modal-subtitle">Inserisci la data di entrata. L'uscita verrà calcolata automaticamente dopo 2 giorni lavorativi (escluse domeniche, sabati e festività italiane).</p>
+    <p class="modal-subtitle">Inserisci la data di entrata. Il blocco dura 2 giorni lavorativi contando l'entrata come 1° giorno (saltando sabati, domeniche e festività italiane).</p>
     <label for="entryDateInput">Data Entrata (06:00)</label>
     <input type="date" id="entryDateInput">
     <div class="info-line" id="exitPreview">L'uscita sarà calcolata automaticamente…</div>
@@ -2181,6 +2181,13 @@ function addWorkingDays(startDate, days) {
     if (isWorkingDay(result)) added++;
   }
   return result;
+}
+
+// Uscita del blocco: il blocco dura GIORNI_BLOCCO giorni lavorativi CONTANDO il
+// giorno di entrata come 1°. Quindi aggiungo (GIORNI_BLOCCO - 1) giorni lavorativi.
+// Es. entrata mercoledì (giorno 1) → uscita giovedì (giorno 2).
+function blockExitDate(entry) {
+  return addWorkingDays(entry, Math.max(0, GIORNI_BLOCCO - 1));
 }
 
 function formatDateLong(d) {
@@ -2466,7 +2473,7 @@ function getFilteredBlocks() {
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
     blocks = blocks.filter(b => {
       const entry = parseISO(b.entryDate);
-      const exit = addWorkingDays(entry, GIORNI_BLOCCO);
+      const exit = blockExitDate(entry);
       return exit >= oneMonthAgo;
     });
   }
@@ -2611,7 +2618,7 @@ function setupColFilters() {
 
 function renderBlock(block) {
   const entry = parseISO(block.entryDate);
-  const exit = addWorkingDays(entry, GIORNI_BLOCCO);
+  const exit = blockExitDate(entry);
   const confirmed = block.confirmed !== false;
   const totals = calcBlockTotals(block);
   const week = getWeekNumber(entry);
@@ -3804,7 +3811,7 @@ function setupToolbar() {
     // Cerca un blocco la cui finestra (entrata → uscita) include oggi
     const todayBlock = state.blocks.find(b => {
       const entry = parseISO(b.entryDate);
-      const exit = addWorkingDays(entry, GIORNI_BLOCCO);
+      const exit = blockExitDate(entry);
       return entry <= today && exit >= today;
     });
     if (todayBlock) {
@@ -3851,12 +3858,12 @@ function openNewBlockModal(editBlockId = null) {
     if (!block) return;
     input.value = block.entryDate;
     titleEl.textContent = 'Modifica Data di Entrata';
-    subtitleEl.textContent = 'Cambia la data di entrata: l\'uscita verrà ricalcolata automaticamente sui due giorni lavorativi successivi.';
+    subtitleEl.textContent = 'Cambia la data di entrata: l\'uscita verrà ricalcolata (blocco di 2 giorni lavorativi, incluso il giorno di entrata).';
     confirmBtn.textContent = 'Aggiorna data';
   } else {
     input.value = isoDate(new Date());
     titleEl.textContent = 'Nuovo Blocco di Produzione';
-    subtitleEl.textContent = 'Inserisci la data di entrata. L\'uscita verrà calcolata automaticamente dopo 2 giorni lavorativi (escluse domeniche, sabati e festività italiane).';
+    subtitleEl.textContent = 'Inserisci la data di entrata. Il blocco dura 2 giorni lavorativi contando l\'entrata come 1° giorno (saltando sabati, domeniche e festività italiane).';
     confirmBtn.textContent = 'Crea Blocco';
   }
 
@@ -3879,9 +3886,9 @@ function updateExitPreview() {
   }
   const entry = parseISO(input.value);
   if (!isWorkingDay(entry)) {
-    preview.innerHTML = `⚠️ <strong>${formatDateLong(entry)}</strong> non è un giorno lavorativo.<br>L'uscita si calcolerà comunque saltando solo i 2 giorni lavorativi successivi.`;
+    preview.innerHTML = `⚠️ <strong>${formatDateLong(entry)}</strong> non è un giorno lavorativo.<br>L'uscita verrà comunque calcolata in automatico.`;
   } else {
-    const exit = addWorkingDays(entry, GIORNI_BLOCCO);
+    const exit = blockExitDate(entry);
     preview.innerHTML = `Entrata: <strong>${formatDateLong(entry)}</strong> alle 06:00<br>Uscita: <strong>${formatDateLong(exit)}</strong> alle 14:00`;
   }
 }
@@ -4038,7 +4045,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'V37'; // v37: catalogo letto per gid (DB VALENTANO)
+const APP_VERSION = 'V38'; // v38: blocco di 2 giorni lavorativi incluso il giorno di entrata
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
