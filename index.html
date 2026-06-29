@@ -1976,7 +1976,7 @@ button.link-btn:hover {
     <div class="catalog-instructions">
       <p><strong>Per importare il catalogo dal foglio Google:</strong></p>
       <ol>
-        <li>Apri il foglio: <a href="https://docs.google.com/spreadsheets/d/1vpThD_H9nyYKvQf0tylE-sJ5lOkYyVpA7VSoqpFrIfs/edit" target="_blank" rel="noopener">Registro Tempi Ciclo →</a> (tab <strong>DB VALENTANO</strong>)</li>
+        <li>Apri il foglio: <a href="https://docs.google.com/spreadsheets/d/1vpThD_H9nyYKvQf0tylE-sJ5lOkYyVpA7VSoqpFrIfs/edit?gid=446156776#gid=446156776" target="_blank" rel="noopener">Registro Tempi Ciclo → DB VALENTANO</a></li>
         <li>Menu <strong>File → Scarica → Valori separati da virgola (.csv)</strong></li>
         <li>Trascina il file scaricato nel riquadro qui sotto</li>
       </ol>
@@ -2900,8 +2900,8 @@ function render() {
 // CATALOGO ARTICOLI — fetch dal file Google "Registro Tempi Ciclo", tab "DB VALENTANO"
 // =============================================================================
 const SHEET_ID = '1vpThD_H9nyYKvQf0tylE-sJ5lOkYyVpA7VSoqpFrIfs';
-const SHEET_NAME = 'DB VALENTANO'; // nome della tab nel file Registro Tempi Ciclo
-const SHEET_GID = '623594434';     // gid della vecchia tab (non più usato: ora si legge DB VALENTANO per nome)
+const SHEET_NAME = 'DB VALENTANO'; // nome della tab (riferimento)
+const SHEET_GID = '446156776';     // gid della tab DB VALENTANO (identificativo non ambiguo, usato per la lettura)
 const CATALOG_STORAGE_KEY = 'preparazione_dg_catalog_v1';
 const CATALOG_TS_KEY = 'preparazione_dg_catalog_ts_v1';
 
@@ -2987,39 +2987,44 @@ function parseCatalogFromCSV(csv) {
   return catalog;
 }
 
-// Fetch dal foglio Google. Leggo SOLO la tab DB VALENTANO, indicandola PER NOME
-// tramite gviz. Restituisco un oggetto con esito e MOTIVO, così so perché fallisce.
+// Fetch dal foglio Google. Leggo la tab DB VALENTANO tramite il suo GID
+// (identificativo numerico, non ambiguo come il nome). Provo gviz e poi export.
+// Restituisco un oggetto con esito e MOTIVO, così so perché eventualmente fallisce.
 async function fetchCatalog() {
-  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
-  let res;
-  try {
-    res = await fetch(url, { credentials: 'omit', mode: 'cors' });
-  } catch (e) {
-    console.warn('Fetch DB VALENTANO: errore di rete/CORS', e);
-    return { ok: false, reason: 'network' };
-  }
-  if (!res.ok) return { ok: false, reason: 'http', status: res.status };
-  let csv;
-  try { csv = await res.text(); } catch (e) { return { ok: false, reason: 'network' }; }
-  // Se Google risponde con HTML invece del CSV, il foglio non è pubblico
-  if (/^\s*<(!doctype|html)/i.test(csv)) return { ok: false, reason: 'access' };
-  const cat = parseCatalogFromCSV(csv);
-  if (!cat.length) {
-    // Diagnostica: mostro cosa ha davvero restituito gviz (per capire se è la tab giusta)
-    let sample = '';
+  const urls = [
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`,
+    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`,
+  ];
+  let lastReason = 'network', lastStatus, lastSample = '';
+  for (const url of urls) {
+    let res;
+    try {
+      res = await fetch(url, { credentials: 'omit', mode: 'cors' });
+    } catch (e) {
+      console.warn('Fetch DB VALENTANO: errore di rete/CORS', url, e);
+      lastReason = 'network';
+      continue;
+    }
+    if (!res.ok) { lastReason = 'http'; lastStatus = res.status; continue; }
+    let csv;
+    try { csv = await res.text(); } catch (e) { lastReason = 'network'; continue; }
+    // Se Google risponde con HTML invece del CSV, il file non è pubblico
+    if (/^\s*<(!doctype|html)/i.test(csv)) { lastReason = 'access'; continue; }
+    const cat = parseCatalogFromCSV(csv);
+    if (cat.length) return { ok: true, catalog: cat };
+    // Letta ma non riconosciuta: salvo un campione per la diagnostica
+    lastReason = 'parse';
     try {
       const rows = parseCSV(csv);
-      sample = rows.slice(0, 3)
+      lastSample = rows.slice(0, 3)
         .map(r => (r || []).slice(0, 8).map(c => (c || '').toString().trim()).filter(Boolean).join(' | '))
         .filter(Boolean)
         .join('   ⟶   ');
-      if (sample.length > 280) sample = sample.slice(0, 280) + '…';
+      if (lastSample.length > 280) lastSample = lastSample.slice(0, 280) + '…';
       console.warn('DB VALENTANO: prime righe ricevute', rows.slice(0, 5));
     } catch (e) {}
-    console.warn('DB VALENTANO letta ma nessun articolo riconosciuto: controlla i nomi delle intestazioni.');
-    return { ok: false, reason: 'parse', sample };
   }
-  return { ok: true, catalog: cat };
+  return { ok: false, reason: lastReason, status: lastStatus, sample: lastSample };
 }
 
 async function loadCatalogFromStorage() {
@@ -4033,7 +4038,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'v36 · diagnostica catalogo';
+const APP_VERSION = 'v37 · catalogo per gid';
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
