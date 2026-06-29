@@ -2932,34 +2932,50 @@ function parseCSV(text) {
   return rows;
 }
 
-// Estrae catalogo dal CSV cercando le colonne giuste in base alle intestazioni
+// Estrae catalogo dal CSV. Riconosce le colonne in modo TOLLERANTE: prova nomi
+// di intestazione diversi (maiuscole/spazi indifferenti) e, se non trova nessuna
+// intestazione riconoscibile, ripiega su colonna A = codice, colonna B = descrizione.
+const CAT_CODE_SPEC = { exact: ['codice (sku)','codice articolo','codice art.','codice art','cod. articolo','cod articolo','codice','sku','articolo'], contains: ['codice','sku'] };
+const CAT_DESC_SPEC = { exact: ['nome art.','nome art','descrizione articolo','descrizione art.','descrizione','nome articolo','descrizione codice','nome'], contains: ['descriz','nome'] };
+const CAT_MIN_SPEC  = { exact: ['preparazione','minuti','tempo preparazione','minuti preparazione','tempo'], contains: ['preparaz','minut'] };
+function catNorm(s) { return (s || '').toString().trim().toLowerCase(); }
+function catFindCol(header, spec) {
+  let idx = header.findIndex(c => spec.exact.includes(catNorm(c)));
+  if (idx >= 0) return idx;
+  idx = header.findIndex(c => { const n = catNorm(c); return n && spec.contains.some(k => n.includes(k)); });
+  return idx;
+}
 function parseCatalogFromCSV(csv) {
   const rows = parseCSV(csv);
   if (!rows.length) return [];
 
-  // Trova la riga delle intestazioni cercando "Codice (SKU)"
-  let headerIdx = -1;
-  for (let i = 0; i < Math.min(rows.length, 10); i++) {
-    if (rows[i].some(c => c && c.trim() === 'Codice (SKU)')) {
+  // Cerca la riga di intestazione: la prima (entro le prime 12) con una colonna codice riconoscibile
+  let headerIdx = -1, codiceCol = -1, descCol = -1, minutiCol = -1;
+  for (let i = 0; i < Math.min(rows.length, 12); i++) {
+    const cc = catFindCol(rows[i], CAT_CODE_SPEC);
+    if (cc >= 0) {
       headerIdx = i;
+      codiceCol = cc;
+      descCol = catFindCol(rows[i], CAT_DESC_SPEC);
+      minutiCol = catFindCol(rows[i], CAT_MIN_SPEC);
       break;
     }
   }
-  if (headerIdx < 0) return [];
-
-  const header = rows[headerIdx];
-  const codiceCol = header.findIndex(c => c && c.trim() === 'Codice (SKU)');
-  const descCol = header.findIndex(c => c && c.trim() === 'Nome art.');
-  const minutiCol = header.findIndex(c => c && c.trim() === 'Preparazione');
-  if (codiceCol < 0) return [];
+  // Nessuna intestazione riconosciuta → assumo A = codice, B = descrizione
+  if (headerIdx < 0) {
+    headerIdx = -1; // partirò da riga 0
+    codiceCol = 0;
+    descCol = 1;
+    minutiCol = -1;
+  }
 
   const seen = new Set();
   const catalog = [];
   for (let i = headerIdx + 1; i < rows.length; i++) {
     const r = rows[i];
-    const codice = (r[codiceCol] || '').trim();
-    const descrizione = descCol >= 0 ? (r[descCol] || '').trim() : '';
-    const minutiRaw = minutiCol >= 0 ? (r[minutiCol] || '').trim() : '';
+    const codice = (r[codiceCol] || '').toString().trim();
+    const descrizione = descCol >= 0 ? (r[descCol] || '').toString().trim() : '';
+    const minutiRaw = minutiCol >= 0 ? (r[minutiCol] || '').toString().trim() : '';
     if (!codice) continue;
     const minuti = parseNum(minutiRaw);
     // Chiave di dedupe: codice + descrizione (stesso codice può apparire con varianti)
@@ -2972,21 +2988,27 @@ function parseCatalogFromCSV(csv) {
 }
 
 // Fetch dal foglio Google. Leggo SOLO la tab DB VALENTANO, indicandola PER NOME
-// tramite gviz (così non dipendo dal gid). Niente fallback alla vecchia tab:
-// se la lettura fallisce è meglio accorgersene che caricare dati sbagliati.
+// tramite gviz. Restituisco un oggetto con esito e MOTIVO, così so perché fallisce.
 async function fetchCatalog() {
   const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+  let res;
   try {
-    const res = await fetch(url, { credentials: 'omit', mode: 'cors' });
-    if (!res.ok) return null;
-    const csv = await res.text();
-    const cat = parseCatalogFromCSV(csv);
-    if (cat.length > 0) return cat;
-    console.warn('DB VALENTANO letta ma nessun articolo: controlla i nomi delle intestazioni di colonna.');
+    res = await fetch(url, { credentials: 'omit', mode: 'cors' });
   } catch (e) {
-    console.warn('Fetch DB VALENTANO fallito per', url, e);
+    console.warn('Fetch DB VALENTANO: errore di rete/CORS', e);
+    return { ok: false, reason: 'network' };
   }
-  return null;
+  if (!res.ok) return { ok: false, reason: 'http', status: res.status };
+  let csv;
+  try { csv = await res.text(); } catch (e) { return { ok: false, reason: 'network' }; }
+  // Se Google risponde con HTML invece del CSV, il foglio non è pubblico
+  if (/^\s*<(!doctype|html)/i.test(csv)) return { ok: false, reason: 'access' };
+  const cat = parseCatalogFromCSV(csv);
+  if (!cat.length) {
+    console.warn('DB VALENTANO letta ma nessun articolo riconosciuto: controlla i nomi delle intestazioni.');
+    return { ok: false, reason: 'parse' };
+  }
+  return { ok: true, catalog: cat };
 }
 
 async function loadCatalogFromStorage() {
@@ -3007,21 +3029,28 @@ async function saveCatalogToStorage(catalog) {
 }
 
 async function refreshCatalog(silent = false) {
-  if (!silent) showToast('Carico catalogo dal foglio Google…', 'info');
+  if (!silent) showToast('Carico catalogo da DB VALENTANO…', 'info');
   const updateStatus = (txt) => {
     const el = document.getElementById('pickerCatalogStatus');
     if (el) el.textContent = txt;
   };
-  const fresh = await fetchCatalog();
-  if (!fresh) {
-    if (!silent) showToast('Impossibile caricare il catalogo. Verifica che il foglio sia pubblico ("Chiunque con il link").', 'error', 6000);
-    updateStatus(`Catalogo locale: ${state.catalog.length} articoli (refresh fallito)`);
+  const result = await fetchCatalog();
+  if (!result || !result.ok) {
+    const reason = result && result.reason;
+    const why =
+      reason === 'parse'  ? 'DB VALENTANO letta ma nessun articolo riconosciuto: controlla i nomi delle intestazioni di colonna' :
+      reason === 'access' ? 'DB VALENTANO non accessibile: condividi il file come "Chiunque con il link"' :
+      reason === 'http'   ? `DB VALENTANO non raggiungibile (errore ${result.status})` :
+                            'impossibile contattare DB VALENTANO (rete/CORS)';
+    // L'avviso di errore appare SEMPRE (anche all'avvio): è il segnale che i dati restano quelli vecchi in cache
+    showToast('Catalogo: ' + why + '. Restano i dati in cache.', 'error', 7000);
+    updateStatus(`Catalogo in cache: ${state.catalog.length} articoli (lettura DB VALENTANO fallita)`);
     return false;
   }
-  state.catalog = fresh;
-  await saveCatalogToStorage(fresh);
-  updateStatus(`${fresh.length} articoli disponibili`);
-  if (!silent) showToast(`Catalogo aggiornato: ${fresh.length} articoli`, 'success');
+  state.catalog = result.catalog;
+  await saveCatalogToStorage(result.catalog);
+  updateStatus(`${result.catalog.length} articoli da DB VALENTANO`);
+  showToast(`Catalogo: ${result.catalog.length} articoli da DB VALENTANO`, 'success', silent ? 2500 : 4000);
   return true;
 }
 
@@ -3093,7 +3122,7 @@ async function importCatalogFromCSV(csvText, sourceLabel = 'CSV') {
   }
   const cat = parseCatalogFromCSV(csvText);
   if (!cat || cat.length === 0) {
-    showToast('Nessun articolo trovato nel CSV. Verifica che le colonne "Codice (SKU)", "Nome art." e "Preparazione" esistano.', 'error', 6000);
+    showToast('Nessun articolo trovato nel CSV. Servono almeno una colonna con il codice articolo e una con la descrizione.', 'error', 6000);
     return false;
   }
   state.catalog = cat;
@@ -3993,7 +4022,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'v34 · catalogo DB VALENTANO';
+const APP_VERSION = 'v35 · catalogo robusto';
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
