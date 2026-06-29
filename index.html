@@ -1976,7 +1976,7 @@ button.link-btn:hover {
     <div class="catalog-instructions">
       <p><strong>Per importare il catalogo dal foglio Google:</strong></p>
       <ol>
-        <li>Apri il foglio: <a href="https://docs.google.com/spreadsheets/d/1vpThD_H9nyYKvQf0tylE-sJ5lOkYyVpA7VSoqpFrIfs/edit?gid=623594434" target="_blank" rel="noopener">Registro Tempi Ciclo DG →</a></li>
+        <li>Apri il foglio: <a href="https://docs.google.com/spreadsheets/d/1vpThD_H9nyYKvQf0tylE-sJ5lOkYyVpA7VSoqpFrIfs/edit" target="_blank" rel="noopener">Registro Tempi Ciclo →</a> (tab <strong>DB VALENTANO</strong>)</li>
         <li>Menu <strong>File → Scarica → Valori separati da virgola (.csv)</strong></li>
         <li>Trascina il file scaricato nel riquadro qui sotto</li>
       </ol>
@@ -2897,10 +2897,11 @@ function render() {
 }
 
 // =============================================================================
-// CATALOGO ARTICOLI — fetch dal foglio Google "Registro Tempi Ciclo DG"
+// CATALOGO ARTICOLI — fetch dal file Google "Registro Tempi Ciclo", tab "DB VALENTANO"
 // =============================================================================
 const SHEET_ID = '1vpThD_H9nyYKvQf0tylE-sJ5lOkYyVpA7VSoqpFrIfs';
-const SHEET_GID = '623594434';
+const SHEET_NAME = 'DB VALENTANO'; // nome della tab nel file Registro Tempi Ciclo
+const SHEET_GID = '623594434';     // gid della vecchia tab (non più usato: ora si legge DB VALENTANO per nome)
 const CATALOG_STORAGE_KEY = 'preparazione_dg_catalog_v1';
 const CATALOG_TS_KEY = 'preparazione_dg_catalog_ts_v1';
 
@@ -2970,22 +2971,20 @@ function parseCatalogFromCSV(csv) {
   return catalog;
 }
 
-// Fetch dal foglio Google: prova prima gviz (più CORS-friendly), poi export
+// Fetch dal foglio Google. Leggo SOLO la tab DB VALENTANO, indicandola PER NOME
+// tramite gviz (così non dipendo dal gid). Niente fallback alla vecchia tab:
+// se la lettura fallisce è meglio accorgersene che caricare dati sbagliati.
 async function fetchCatalog() {
-  const urls = [
-    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&gid=${SHEET_GID}`,
-    `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${SHEET_GID}`,
-  ];
-  for (const url of urls) {
-    try {
-      const res = await fetch(url, { credentials: 'omit', mode: 'cors' });
-      if (!res.ok) continue;
-      const csv = await res.text();
-      const cat = parseCatalogFromCSV(csv);
-      if (cat.length > 0) return cat;
-    } catch (e) {
-      console.warn('Fetch fallito per', url, e);
-    }
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}`;
+  try {
+    const res = await fetch(url, { credentials: 'omit', mode: 'cors' });
+    if (!res.ok) return null;
+    const csv = await res.text();
+    const cat = parseCatalogFromCSV(csv);
+    if (cat.length > 0) return cat;
+    console.warn('DB VALENTANO letta ma nessun articolo: controlla i nomi delle intestazioni di colonna.');
+  } catch (e) {
+    console.warn('Fetch DB VALENTANO fallito per', url, e);
   }
   return null;
 }
@@ -3994,7 +3993,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'v33 · filtri colonna';
+const APP_VERSION = 'v34 · catalogo DB VALENTANO';
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
