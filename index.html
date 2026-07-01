@@ -2245,12 +2245,20 @@ function isSameDay(d1, d2) {
 // FORMATTAZIONE NUMERI ITALIANA
 // =============================================================================
 function fmtNum(n, decimals = 2) {
-  if (n === 0 || n === null || isNaN(n)) return (0).toFixed(decimals).replace('.', ',');
-  return n.toFixed(decimals).replace('.', ',');
+  const v = (n === null || n === undefined || isNaN(n)) ? 0 : Number(n);
+  const neg = v < 0;
+  const fixed = Math.abs(v).toFixed(decimals); // es. "1234.56"
+  let [intPart, decPart] = fixed.split('.');
+  intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // punto ogni 3 cifre
+  const out = decPart ? intPart + ',' + decPart : intPart;
+  return (neg ? '-' : '') + out;
 }
 
 function fmtInt(n) {
-  return Math.round(n).toString();
+  const v = (n === null || n === undefined || isNaN(n)) ? 0 : Math.round(Number(n));
+  const neg = v < 0;
+  const s = String(Math.abs(v)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); // punto migliaia
+  return (neg ? '-' : '') + s;
 }
 
 function parseNum(s) {
@@ -3619,7 +3627,8 @@ function setupBlocksDelegation() {
       const itemIdx = parseInt(inp.dataset.itemIdx);
       const block = state.blocks.find(b => b.id === blockId);
       if (!block || !block.rows[rowIdx] || !block.rows[rowIdx].kitItems || !block.rows[rowIdx].kitItems[itemIdx]) return;
-      block.rows[rowIdx].kitItems[itemIdx].quantita = parseNum(inp.value);
+      // Qtà è un intero: leggo solo le cifre (così "1.000" col separatore torna 1000)
+      block.rows[rowIdx].kitItems[itemIdx].quantita = parseInt(String(inp.value).replace(/[^\d]/g, ''), 10) || 0;
       markBlockModified(blockId);
       persistAndRender();
       return;
@@ -4061,7 +4070,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'V40'; // v40: FTE ciano vetro, 4 colonne blu #3d22ff
+const APP_VERSION = 'V41'; // v41: separatore migliaia (punto)
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
