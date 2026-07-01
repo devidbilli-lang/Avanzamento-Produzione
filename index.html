@@ -910,15 +910,29 @@ button.icon-btn.row-action.danger:hover {
 }
 .cell-artdesc { text-align: center; font-size: 12px; }
 .cell-code { text-align: center; }
-.cell-codedesc { text-align: center; font-family: 'Montserrat', sans-serif; font-weight: 500; font-size: 12px; }
-.cell-kitborsa { text-align: center; font-family: 'Montserrat', sans-serif; font-weight: 700; color: #2c5f9e; }
-.cell-codemin { text-align: center; font-family: 'Montserrat', sans-serif; }
+.cell-codedesc { text-align: center; font-family: 'Montserrat', sans-serif; font-weight: 500; font-size: 12px; color: #3d22ff; }
+.cell-kitborsa { text-align: center; font-family: 'Montserrat', sans-serif; font-weight: 700; color: #3d22ff; }
+.cell-codemin { text-align: center; font-family: 'Montserrat', sans-serif; color: #3d22ff; }
 .cell-qta { text-align: center; }
 .cell-fte {
   text-align: center;
   font-family: 'Montserrat', sans-serif;
   font-weight: 800;
-  color: #1a8a5a;
+}
+.cell-fte .fte-chip {
+  display: inline-block;
+  padding: 2px 12px;
+  border-radius: 12px;
+  font-weight: 800;
+  color: var(--ink);
+  background: linear-gradient(135deg, rgba(61, 232, 232, 0.55), rgba(61, 232, 232, 0.28));
+  border: 1px solid rgba(61, 232, 232, 0.65);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow:
+    0 2px 8px rgba(61, 232, 232, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(61, 232, 232, 0.3);
 }
 
 /* Tendina codice dentro la cella */
@@ -926,9 +940,9 @@ button.icon-btn.row-action.danger:hover {
   font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   font-size: 12px;
-  color: #3a78c2;
+  color: #3d22ff;
   background: #fff;
-  border: 1px solid rgba(58, 120, 194, 0.45);
+  border: 1px solid rgba(61, 34, 255, 0.4);
   border-radius: 6px;
   padding: 3px 6px;
   cursor: pointer;
@@ -938,8 +952,8 @@ button.icon-btn.row-action.danger:hover {
 }
 .block-table-kit .code-select:focus {
   outline: none;
-  border-color: #3a78c2;
-  box-shadow: 0 0 0 2px rgba(58, 120, 194, 0.18);
+  border-color: #3d22ff;
+  box-shadow: 0 0 0 2px rgba(61, 34, 255, 0.18);
 }
 
 /* Input quantità dentro la cella */
@@ -2669,7 +2683,7 @@ function renderBlock(block) {
           <td class="cell-kitborsa">${escapeHtml(String(info.kitE || ''))}</td>
           <td class="cell-codemin">${fmtNum(min)}</td>
           <td class="cell-qta"><input type="text" inputmode="numeric" class="kit-qta-input" data-row-idx="${rowIdx}" data-item-idx="${itIdx}" value="${fmtInt(q)}"></td>
-          <td class="cell-fte">${fmtNum(fte)}</td>
+          <td class="cell-fte"><span class="fte-chip">${fmtNum(fte)}</span></td>
           <td class="cell-actions">
             <button class="icon-btn row-action danger" data-action="delete-kit" data-row-idx="${rowIdx}" data-item-idx="${itIdx}" title="Rimuovi questo codice">✕</button>
           </td>
@@ -4047,7 +4061,7 @@ function setupModal() {
 // =============================================================================
 // VERSIONE APP — mostrata nel toolbar per capire se è caricata l'ultima versione
 // =============================================================================
-const APP_VERSION = 'V39'; // v39: font Montserrat + colonne centrate
+const APP_VERSION = 'V40'; // v40: FTE ciano vetro, 4 colonne blu #3d22ff
 
 // =============================================================================
 // CONFIGURAZIONE SYNC — INTERAMENTE NEL CODICE
